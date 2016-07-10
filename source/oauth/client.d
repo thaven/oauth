@@ -120,15 +120,16 @@ abstract class OAuthClient
             synchronized(this)
                 _ld.remove(key);
         
-        auto request = format(
-            "grant_type=authorization_code&code=%s&redirect_uri=%s",
-            authorizationCode.uriEncode(), redirectUri.uriEncode());
+        string[string] params;
+        params["grant_type"] = "authorization_code";
+        params["code"] = authorizationCode;
+        params["redirect_uri"] = redirectUri;
 
         if (ld._scopes)
-            request ~= "&scope=" ~ join(ld._scopes, ' ').uriEncode;
+            params["scope"] = join(ld._scopes, ' ');
 
         auto session = newSession();
-        requestAuthorization(session, request);
+        requestAuthorization(session, params);
         return session;
     }
 
@@ -165,15 +166,16 @@ abstract class OAuthClient
     }
     body
     {
-        auto request = format(
-            "grant_type=password&username=%s&password=%s",
-            username.uriEncode(), password.uriEncode());
-        
+        string[string] params;
+        params["grant_type"] = "password";
+        params["username"] = username;
+        params["password"] = password;
+
         if (scopes)
-            request ~= "&scope=" ~ join(scopes, ' ').uriEncode;
+            params["scope"] = join(scopes, ' ');
 
         auto session = newSession();
-        requestAuthorization(session, request);
+        requestAuthorization(session, params);
         return session;
     }
     
@@ -196,13 +198,14 @@ abstract class OAuthClient
     }
     body
     {
-        auto request = "grant_type=client_credentials";
+        string[string] params;
+        params["grant_type"] = "client_credentials";
 
         if (scopes)
-            request ~= "&scope=" ~ join(scopes, ' ').uriEncode;
+            params["scope"] = join(scopes, ' ');
 
         auto session = newSession();
-        requestAuthorization(session, request);
+        requestAuthorization(session, params);
         return session;
     }
     
@@ -247,7 +250,7 @@ abstract class OAuthClient
 
     void requestAuthorization(
         OAuthSession session,
-        string request) const @system
+        string[string] params) const @system
     in
     {
         assert(session !is null);
@@ -267,6 +270,7 @@ abstract class OAuthClient
             std.uri.encodeComponent(_clientId),
             std.uri.encodeComponent(_clientSecret));
 
+        auto request = buildQueryString(params)[1 .. $];
         auto response = assumeUnique(post(tokenEndpointUri, request, conn));
         session.handleAccessTokenResponse(response);
         return;
@@ -325,14 +329,15 @@ class OAuthSession
     {
         enforce!OAuthException(_refreshToken, "No refresh token is available.");
     
-        auto request = format(
-            "grant_type=refresh_token&refresh_token=%s&redirect_uri=%s",
-            _refreshToken.uriEncode(), _client.redirectUri.uriEncode());
-        
-        if (_scopes)
-            request ~= "&scope=" ~ join(_scopes, ' ').uriEncode;
+        string[string] params;
+        params["grant_type"] = "refresh_token";
+        params["refresh_token"] = _refreshToken;
+        params["redirect_uri"] = _client.redirectUri;
 
-        _client.requestAuthorization(this, request);
+        if (_scopes)
+            params["scope"] = join(_scopes, ' ');
+        
+        _client.requestAuthorization(this, params);
     }
     
     bool hasScope(string someScope) const nothrow
