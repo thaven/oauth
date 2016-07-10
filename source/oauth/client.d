@@ -500,28 +500,22 @@ class OAuthException : Exception
         {
             case "invalid_request":
                 return "Invalid access token request.";
-                break;
-                
+
             case "invalid_client":
                 return "Client authentication failed.";
-                break;
 
             case "invalid_grant":
                 return "Grant invalid or expired.";
-                break;
-                
+
             case "unauthorized_client":
                 return "Client is not authorized to make this request.";
-                break;
 
             case "unsupported_grant_type":
                 return "Unsupported grant type.";
-                break;
-                
+
             case "invalid_scope":
                 return "The service does not support the requested scope.";
-                break;
-            
+
             default:
                 return "Unknown error.";
         }
