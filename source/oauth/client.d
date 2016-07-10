@@ -1,3 +1,12 @@
+/++
+	OAuth2 client module
+
+	Copyright: © 2016 Harry T. Vennik
+	License: Subject to the terms of the MIT license, as written in the included LICENSE file.
+	Authors: Harry T. Vennik
+
+    Standards: Conforms to RFC 6749
+  +/
 module oauth.client;
 
 import std.algorithm.searching;
