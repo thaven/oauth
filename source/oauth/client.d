@@ -9,12 +9,13 @@
   +/
 module oauth.client;
 
+import vibe.data.json;
+
 import std.algorithm.searching;
 import std.base64;
 import std.datetime;
 import std.exception;
 import std.format;
-import std.json;
 import std.string : split, join;
 import std.net.curl;
 import std.uni : toLower;
@@ -382,24 +383,24 @@ class OAuthSession
       +/
     void handleAccessTokenResponse(string atr) @system
     {
-        auto atrJObj = parseJSON(atr);
+        auto atrJObj = parseJson(atr);
         
         if ("error" in atrJObj)
             throw new OAuthException(atrJObj);
         
         enforce!OAuthException(
-            atrJObj["token_type"].str.toLower() == "bearer",
-            format("Unsupported token type: %s", atrJObj["token_type"].str));
+            atrJObj["token_type"].get!string.toLower() == "bearer",
+            format("Unsupported token type: %s", atrJObj["token_type"].get!string));
             
-        _token = atrJObj["access_token"].str;
+        _token = atrJObj["access_token"].get!string;
         _expirationTime = Clock.currTime +
-            seconds(atrJObj["expires_in"].integer);
+            seconds(atrJObj["expires_in"].get!long);
 
         if (auto tmp = "refresh_token" in atrJObj)
-            _refreshToken = tmp.str;
+            _refreshToken = tmp.get!string;
         
         if (auto tmp = "scope" in atrJObj)
-            _scopes = split(tmp.str, ' ');
+            _scopes = split(tmp.get!string, ' ');
     }
 
     private:
@@ -466,25 +467,25 @@ class OAuthException : Exception
             errorResponse = error response from the authentication server.
       +/
     this(
-        JSONValue errorResponse,
+        Json errorResponse,
         string file = __FILE__,
         size_t line = __LINE__,
-        Throwable next = null) pure @system
+        Throwable next = null) @system
     in
     {
         assert("error" in errorResponse);
     }
     body
     {
-        _err_rfc6749 = errorResponse["error"].str;
+        _err_rfc6749 = errorResponse["error"].get!string;
 
         auto descriptionJVal = "error_description" in errorResponse;
         auto msg = (descriptionJVal)
-            ? descriptionJVal.str
+            ? descriptionJVal.get!string
             : _defaultOAuthErrorDescription(_err_rfc6749);
         
         if (auto uriJVal = "error_uri" in errorResponse)
-            _err_uri = uriJVal.str;
+            _err_uri = uriJVal.get!string;
         
         super(msg, file, line, next);
     }
