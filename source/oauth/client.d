@@ -10,6 +10,8 @@
 module oauth.client;
 
 import vibe.data.json;
+import vibe.inet.webform;
+import vibe.textfilter.urlencode;
 
 import std.algorithm.searching;
 import std.base64;
@@ -19,7 +21,6 @@ import std.format;
 import std.string : split, join;
 import std.net.curl;
 import std.uni : toLower;
-static import std.uri;
 
 @safe:
 
@@ -89,7 +90,7 @@ abstract class OAuthClient
         if (t >= _nextCleanup)
             cleanup(); 
         
-        return authorizationEndpointUri ~ buildQueryString(reqParams);
+        return authorizationEndpointUri ~ '?' ~ reqParams.formEncode();
     }
 
     /++
@@ -277,10 +278,10 @@ abstract class OAuthClient
         HTTP conn;
         conn.authenticationMethod = HTTP.AuthMethod.basic;
         conn.setAuthentication(
-            std.uri.encodeComponent(_clientId),
-            std.uri.encodeComponent(_clientSecret));
+            _clientId.formEncode(),
+            _clientSecret.formEncode());
 
-        auto request = buildQueryString(params)[1 .. $];
+        auto request = params.formEncode();
         auto response = assumeUnique(post(tokenEndpointUri, request, conn));
         session.handleAccessTokenResponse(response);
         return;
@@ -524,17 +525,6 @@ class OAuthException : Exception
 
 private:
 
-string buildQueryString(string[string] reqParams) @trusted
-{
-    string q;
-    
-    foreach(k, v; reqParams)
-        q ~= (q is null ? '?' : '&') ~
-            k ~ '=' ~ std.uri.encodeComponent(v);
-    
-    return q;
-}
-
 ulong decodeLoginKey(string encodedKey) pure
 {
     enforce(encodedKey.length == 11);
@@ -557,17 +547,5 @@ ulong generateLoginKey()
 {
     import std.random : uniform;
     return uniform!ulong();
-}
-
-string uriEncode(string s) @trusted
-{
-    import std.uri : encodeComponent;
-    return encodeComponent(s);
-}
-
-string uriDecode(string s) @trusted
-{
-    import std.uri : decodeComponent;
-    return decodeComponent(s);
 }
 
