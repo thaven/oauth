@@ -10,8 +10,9 @@
 module oauth.client;
 
 import vibe.data.json;
+import vibe.http.auth.basic_auth;
+import vibe.http.client;
 import vibe.inet.webform;
-import vibe.textfilter.urlencode;
 
 import std.algorithm.searching;
 import std.base64;
@@ -19,7 +20,6 @@ import std.datetime;
 import std.exception;
 import std.format;
 import std.string : split, join;
-import std.net.curl;
 import std.uni : toLower;
 
 @safe:
@@ -274,17 +274,27 @@ abstract class OAuthClient
     body
     {
         enforce!OAuthException(_clientSecret, "Client secret is not set.");
-            
-        HTTP conn;
-        conn.authenticationMethod = HTTP.AuthMethod.basic;
-        conn.setAuthentication(
-            _clientId.formEncode(),
-            _clientSecret.formEncode());
 
-        auto request = params.formEncode();
-        auto response = assumeUnique(post(tokenEndpointUri, request, conn));
-        session.handleAccessTokenResponse(response);
-        return;
+        requestHTTP(
+            tokenEndpointUri,
+            delegate void(scope HTTPClientRequest req) {
+                req.method = HTTPMethod.POST;
+                addBasicAuth(req, _clientId, _clientSecret);
+                req.contentType = "application/x-www-form-urlencoded";
+                req.headers["Accept"] = "application/json";
+                req.bodyWriter.write(formEncode(params));
+            },
+            delegate void(scope HTTPClientResponse res) {
+                enforce(res.statusCode == 200, new OAuthException(
+                    format("Auth server responded with HTTP status %d %s",
+                        res.statusCode, res.statusPhrase)));
+                enforce!OAuthException(res.contentType == "application/json",
+                    "Unacceptable response content type.");
+
+                import vibe.stream.operations : readAllUTF8;
+                session.handleAccessTokenResponse(res.bodyReader.readAllUTF8);
+            }
+        );
     }
 
     void cleanup()
@@ -308,26 +318,26 @@ abstract class OAuthClient
 class OAuthSession
 {
     /++
-        Authorize an HTTP connection using this session's token.
+        Authorize an HTTP request using this session's token.
 
         This implementation only supports, and blindly assumes, the 'bearer'
         token type. Subclasses should override this if support for other token
         types is required.
 
         Params:
-            conn = Curl HTTP connection object (by reference).
+            req = HTTPClientRequest object
 
         Throws: OAuthException if this session doesn't have any access token,
         or the access token has expired and cannot be refreshed.
       +/
-    void setAuthorizationHeader(ref HTTP conn) @system
+    void setAuthorizationHeader(HTTPClientRequest req) @system
     {
         enforce!OAuthException(_token, "No access token available.");
         
         if (Clock.currTime > _expirationTime)
             refresh();
-        
-        conn.addRequestHeader("Authorization", "Bearer " ~ _token);
+
+        req.headers["Authorization"] = "Bearer " ~ _token;
     }
     
     /++
