@@ -291,8 +291,7 @@ abstract class OAuthClient
                 enforce!OAuthException(res.contentType == "application/json",
                     "Unacceptable response content type.");
 
-                import vibe.stream.operations : readAllUTF8;
-                session.handleAccessTokenResponse(res.bodyReader.readAllUTF8);
+                session.handleAccessTokenResponse(res.readJson);
             }
         );
     }
@@ -392,25 +391,23 @@ class OAuthSession
         Params:
             atr = Access token response
       +/
-    void handleAccessTokenResponse(string atr) @system
+    void handleAccessTokenResponse(Json atr) @system
     {
-        auto atrJObj = parseJson(atr);
-        
-        if ("error" in atrJObj)
-            throw new OAuthException(atrJObj);
+        if ("error" in atr)
+            throw new OAuthException(atr);
         
         enforce!OAuthException(
-            atrJObj["token_type"].get!string.toLower() == "bearer",
-            format("Unsupported token type: %s", atrJObj["token_type"].get!string));
+            atr["token_type"].get!string.toLower() == "bearer",
+            format("Unsupported token type: %s", atr["token_type"].get!string));
             
-        _token = atrJObj["access_token"].get!string;
+        _token = atr["access_token"].get!string;
         _expirationTime = Clock.currTime +
-            seconds(atrJObj["expires_in"].get!long);
+            seconds(atr["expires_in"].get!long);
 
-        if (auto tmp = "refresh_token" in atrJObj)
+        if (auto tmp = "refresh_token" in atr)
             _refreshToken = tmp.get!string;
         
-        if (auto tmp = "scope" in atrJObj)
+        if (auto tmp = "scope" in atr)
             _scopes = split(tmp.get!string, ' ');
     }
 
