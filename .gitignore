@@ -1,0 +1,10 @@
+*.[oa]
+*.so
+*.lib
+*.dll
+*.exe
+
+.dub/
+dub.selections.json
+
+
