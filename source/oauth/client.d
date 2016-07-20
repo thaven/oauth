@@ -12,10 +12,11 @@ module oauth.client;
 import vibe.data.json;
 import vibe.http.auth.basic_auth;
 import vibe.http.client;
+import vibe.http.session;
 import vibe.inet.webform;
 
+import core.atomic;
 import std.algorithm.searching;
-import std.base64;
 import std.datetime;
 import std.exception;
 import std.format;
@@ -25,18 +26,55 @@ import std.uni : toLower;
 @safe:
 
 /++
-    Represents a client of an OAuth authentication server.
-  +/
-abstract class OAuthClient
-{
-    immutable string clientId;
-    immutable string redirectUri;
+    Settings for an OAuth 2.0 client application.
 
-    void clientSecret(string value) @property nothrow @nogc
+    One client application may hold multiple settings objects when using various
+    authentication servers.
+
+    Instances of this class must be immutable.
+  +/
+class OAuthSettings
+{
+    OAuthProvider provider;
+    string clientId;
+    string clientSecret;
+    string redirectUri;
+
+    this(in Json config) immutable @system
     {
-        _clientSecret = value;
+        auto sp = (config["provider"].type == Json.Type.string)
+            ? OAuthProvider.forName(config["provider"].get!string)
+            : new immutable(OAuthProvider)(config["provider"]);
+
+        this(sp,
+            config["clientId"].get!string,
+            config["clientSecret"].get!string,
+            config["redirectUri"].get!string);
     }
 
+    this(
+        string provider,
+        string clientId,
+        string clientSecret,
+        string redirectUri) immutable nothrow
+    {
+        this(OAuthProvider.forName(provider),
+            clientId, clientSecret, redirectUri);
+    }
+
+    private:
+
+    this(
+        immutable OAuthProvider provider,
+        string clientId,
+        string clientSecret,
+        string redirectUri) immutable nothrow
+    {
+        this.provider = provider;
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.redirectUri = redirectUri;
+    }
 
     /++
         User login helper method.
@@ -53,6 +91,7 @@ abstract class OAuthClient
         code.
 
         Params:
+            httpSession = The current HTTP session.
             scopes = An array of identifiers specifying the scope of
                 access to be requested. (optional)
 
@@ -60,78 +99,90 @@ abstract class OAuthClient
         login and authorization.
       +/
     final
-    string userLoginUri(string[] scopes = null)
+    string userAuthUri(
+        scope Session httpSession,
+        string[] scopes = null) immutable @system
     {
+        import std.random : uniform;
+
         string[string] reqParams;
+        string scopesJoined = join(scopes, ' ');
 
         reqParams["response_type"] = "code";
         reqParams["client_id"] = clientId;
 
-        if (scopes)
-            reqParams["scope"] = join(scopes, ' ');
+        if (scopesJoined)
+            reqParams["scope"] = scopesJoined;
 
         auto t = Clock.currTime;
-        
-        ulong loginKey;
-        
-        do {
-            loginKey = generateLoginKey();
-        } while (loginKey in _ld);
-        
-        reqParams["state"] = encodeLoginKey(loginKey);
-        _ld[loginKey] = LoginData(scopes, t + hours(1));
+        auto rnd = uniform!ulong;
 
-        if (t >= _nextCleanup)
-            cleanup(); 
-        
-        return authorizationEndpointUri ~ '?' ~ reqParams.formEncode();
+        auto key = loginKey(t, rnd, scopesJoined);
+        reqParams["state"] = Base64URLNoPadding.encode(key);
+        httpSession.set("oauth.authorization", LoginData(t, rnd, scopesJoined));
+
+        return provider.authUri ~ '?' ~ reqParams.formEncode();
     }
 
     /++
-        User login helper method, complementary to ($D userLoginUri).
+        User login helper method, complementary to ($D userAuthUri).
 
         Use this method to start a session with user impersonation. The
         authorizationCode MUST be obtained by redirection of the user
-        agent to an URI obtained through ($D userLoginUri), otherwise
-        there would not be a valid ($D loginKey).
+        agent to an URI obtained through ($D userAuthUri), otherwise
+        there would not be a valid ($D state).
 
         Params:
+            httpSession = The current HTTP session.
+            state = OAuth state obtained from the 'state' query string parameter
+                of the request URL.
             authorizationCode = the authorization code obtained from the
                 service. It will be in the 'code' parameter in the query
                 string of the request being processed.
-            loginKey = the unique key used to match this call to a previous
-                call to ($D userLoginUri). Can be obtained from the 'state'
-                query string parameter.
 
         Returns: The new session.
 
-        Throws: ($D OAuthException) if any of the two arguments is invalid or
-        authentication fails otherwise.
+        Throws: ($D OAuthException) if any of the latter two arguments is
+        invalid or authentication fails otherwise.
       +/
     final
     OAuthSession userSession(
-        string loginKey,
-        string authorizationCode) @system
+        scope Session httpSession,
+        string state,
+        string authorizationCode) immutable @system
+    in
+    {
+        assert (httpSession && state && authorizationCode);
+    }
     out(result)
     {
         assert(result !is null);
     }
     body
     {
-        auto key = decodeLoginKey(loginKey);
-        auto ld = (key in _ld);
-        
-        scope(success)
-            synchronized(this)
-                _ld.remove(key);
-        
+        enforce(httpSession.isKeySet("oauth.authorization"),
+            "No call to userAuthUri was made using this HTTP session.");
+
+        auto key = Base64URLNoPadding.decode(state);
+        auto ld = httpSession.get!LoginData("oauth.authorization");
+
+        enforce(key == loginKey(ld.timestamp, ld.randomId, ld.scopes),
+            "Invalid state parameter.");
+
+        // Seems like there is no way to remove a key from a session????
+        scope(exit)
+            httpSession.set("oauth.authorization", LoginData.init);
+
+        enforce(ld.timestamp >= Clock.currTime - 1.hours,
+            "Authorization challenge timeout.");
+
         string[string] params;
         params["grant_type"] = "authorization_code";
         params["code"] = authorizationCode;
         params["redirect_uri"] = redirectUri;
 
-        if (ld._scopes)
-            params["scope"] = join(ld._scopes, ' ');
+        if (ld.scopes)
+            params["scope"] = ld.scopes;
 
         auto session = newSession();
         requestAuthorization(session, params);
@@ -159,7 +210,7 @@ abstract class OAuthClient
     OAuthSession userSession(
         string username,
         string password,
-        string[] scopes) @system
+        string[] scopes) immutable @system
     in
     {
         assert(username);
@@ -196,7 +247,7 @@ abstract class OAuthClient
         Throws: ($D OAuthException) if authentication fails.
       +/
     final
-    OAuthSession clientSession(string[] scopes = null) @system
+    OAuthSession clientSession(string[] scopes = null) immutable @system
     out(result)
     {
         assert(result !is null);
@@ -214,45 +265,36 @@ abstract class OAuthClient
         return session;
     }
     
-    protected:
-    
-    this(string redirectUri, string clientId, string clientSecret = null)
-    {
-        this.redirectUri = enforce!OAuthException(redirectUri,
-            "Parameter redirectUri is required.");
-        
-        this.clientId = enforce!OAuthException(clientId,
-            "Parameter clientId is required.");
-        
-        _clientSecret = clientSecret;
-    }
-    
-    abstract
-    string authorizationEndpointUri() @property const nothrow;
-
-    abstract
-    string tokenEndpointUri() @property const nothrow;
-    
-    OAuthSession newSession() const nothrow
+    OAuthSession newSession() immutable nothrow
     {
         return new OAuthSession(this);
     }
 
     private:
+
     struct LoginData
     {
-        string[] _scopes;
-        SysTime  _cleanupTime;
+        SysTime timestamp;
+        ulong   randomId;
+        string  scopes;
     }
 
-    string _clientSecret;
-    LoginData[ulong] _ld;
-    Duration _cleanupInterval = minutes(15);
-    SysTime _nextCleanup;
+    static loginKey(SysTime t, ulong rnd, in string scopes)
+    {
+        import std.digest.crc : crc32Of;
+        import std.digest.sha : sha256Of;
+
+        ubyte[20] data;
+        ulong[] data64 = cast(ulong[])(data[0 .. 16]);
+        data64[0] = t.toUnixTime;
+        data64[1] = rnd;
+        data[16 .. 20] = crc32Of(scopes);
+        return sha256Of(data[]);
+    }
 
     void requestAuthorization(
         OAuthSession session,
-        string[string] params) const @system
+        string[string] params) immutable @system
     in
     {
         assert(session !is null);
@@ -264,13 +306,11 @@ abstract class OAuthClient
     }
     body
     {
-        enforce!OAuthException(_clientSecret, "Client secret is not set.");
-
         requestHTTP(
-            tokenEndpointUri,
+            provider.tokenUri,
             delegate void(scope HTTPClientRequest req) {
                 req.method = HTTPMethod.POST;
-                addBasicAuth(req, clientId, _clientSecret);
+                addBasicAuth(req, clientId, clientSecret);
                 req.contentType = "application/x-www-form-urlencoded";
                 req.headers["Accept"] = "application/json";
                 req.bodyWriter.write(formEncode(params));
@@ -285,23 +325,6 @@ abstract class OAuthClient
                 session.handleAccessTokenResponse(res.readJson);
             }
         );
-    }
-
-    void cleanup()
-    {
-        auto t = Clock.currTime;
-        size_t c;
-                    
-        foreach (k, ref v; _ld)
-            if (t >= v._cleanupTime)
-                _ld.remove(k) && ++c;
-
-        if (c >= 2000)
-            _cleanupInterval /= (c / 1000);
-        else if (c < 750)
-            _cleanupInterval *= 2;
-        
-        _nextCleanup = t + _cleanupInterval;
     }
 }
 
@@ -343,12 +366,12 @@ class OAuthSession
         string[string] params;
         params["grant_type"] = "refresh_token";
         params["refresh_token"] = _refreshToken;
-        params["redirect_uri"] = _client.redirectUri;
+        params["redirect_uri"] = _settings.redirectUri;
 
         if (_scopes)
             params["scope"] = join(_scopes, ' ');
         
-        _client.requestAuthorization(this, params);
+        _settings.requestAuthorization(this, params);
     }
     
     bool hasScope(string someScope) const nothrow
@@ -362,11 +385,11 @@ class OAuthSession
         Constructor
 
         Params:
-            client = The client this session belongs to.
+            settings = OAuth client settings.
       +/
-    this(const OAuthClient client) nothrow
+    this(immutable OAuthSettings settings) nothrow
     {
-        _client = client;
+        _settings = settings;
     }
 
     /++
@@ -403,11 +426,92 @@ class OAuthSession
     }
 
     private:
-    const OAuthClient _client;
+    immutable OAuthSettings _settings;
     string _token;
     SysTime _expirationTime;
     string _refreshToken;
     string[] _scopes;
+}
+
+
+/++
+    Represents an OAuth 2.0 authentication server.
+  +/
+class OAuthProvider
+{
+    private
+    {
+        import std.typecons : Rebindable;
+
+        /* Exclusively accessed by forName() and register(), synchronized. */
+        __gshared Rebindable!(immutable OAuthProvider)[string] _servers;
+
+        /* Set once and never changed, synchronization not necessary. */
+        __gshared bool allowAutoRegister = true;
+    }
+
+    string authUri;
+    string tokenUri;
+
+    /++
+        Disables automatic registration of authentication servers from JSON
+        config.
+
+        This will only prevent the application from changing the provider
+        registry implicitly. Explicit registration of providers remains
+        possible.
+
+        Should be called only once and before using any OAuth functions.
+      +/
+    static disableAutoRegister() nothrow @system
+    {
+        static shared bool calledBefore;
+
+        if(cas(&calledBefore, false, true))
+            allowAutoRegister = false;
+    }
+
+    static forName(string name) nothrow @trusted
+    {
+        // TODO: investigate why 'synchronized' is not nothrow
+        //  Hacked around it for now.
+        try synchronized(OAuthProvider.classinfo)
+            if (auto p_srv = name in _servers)
+                return p_srv.get;
+        catch (Exception)
+            assert (false);
+
+        return null;
+    }
+
+    static register(string name, immutable OAuthProvider srv) nothrow @trusted
+    {
+        // TODO: investigate why 'synchronized' is not nothrow
+        //  Hacked around it for now.
+        try synchronized(OAuthProvider.classinfo)
+            _servers[name] = srv;
+        catch (Exception)
+            assert (false);
+    }
+
+    this(
+        string authUri,
+        string tokenUri) immutable nothrow
+    {
+        this.authUri = authUri;
+        this.tokenUri = tokenUri;
+    }
+
+    private:
+
+    this(in Json json) immutable @system
+    {
+        this(json["authUri"].get!string,
+            json["tokenUri"].get!string);
+
+        if (allowAutoRegister && "name" in json)
+            register(json["name"].get!string, this);
+    }
 }
 
 /++
@@ -521,29 +625,4 @@ class OAuthException : Exception
     }
 }
 
-private:
-
-ulong decodeLoginKey(string encodedKey) pure
-{
-    enforce(encodedKey.length == 11);
-    alias Base64Impl!('-', '_', Base64.NoPadding) Base64URLt;
-    return (cast(ulong[])(Base64URLt.decode(encodedKey)))[0];
-}
-
-string encodeLoginKey(ulong key) pure @trusted
-out(result)
-{
-    assert(result.length == 11);
-}
-body
-{
-    alias Base64Impl!('-', '_', Base64.NoPadding) Base64URLt;
-    return Base64URLt.encode(cast(ubyte[])((&key)[0..1]));
-}
-
-ulong generateLoginKey()
-{
-    import std.random : uniform;
-    return uniform!ulong();
-}
 
