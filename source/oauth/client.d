@@ -29,20 +29,14 @@ import std.uni : toLower;
   +/
 abstract class OAuthClient
 {
-    string clientId() const @property nothrow @nogc
-    {
-        return _clientId;
-    }
+    immutable string clientId;
+    immutable string redirectUri;
 
     void clientSecret(string value) @property nothrow @nogc
     {
         _clientSecret = value;
     }
 
-    string redirectUri() const @property nothrow @nogc
-    {
-        return _redirectUri;
-    }
 
     /++
         User login helper method.
@@ -224,10 +218,10 @@ abstract class OAuthClient
     
     this(string redirectUri, string clientId, string clientSecret = null)
     {
-        _redirectUri = enforce!OAuthException(redirectUri,
+        this.redirectUri = enforce!OAuthException(redirectUri,
             "Parameter redirectUri is required.");
         
-        _clientId = enforce!OAuthException(clientId,
+        this.clientId = enforce!OAuthException(clientId,
             "Parameter clientId is required.");
         
         _clientSecret = clientSecret;
@@ -251,10 +245,7 @@ abstract class OAuthClient
         SysTime  _cleanupTime;
     }
 
-    immutable string _clientId;
-    string           _clientSecret;
-    immutable string _redirectUri;
-
+    string _clientSecret;
     LoginData[ulong] _ld;
     Duration _cleanupInterval = minutes(15);
     SysTime _nextCleanup;
@@ -279,7 +270,7 @@ abstract class OAuthClient
             tokenEndpointUri,
             delegate void(scope HTTPClientRequest req) {
                 req.method = HTTPMethod.POST;
-                addBasicAuth(req, _clientId, _clientSecret);
+                addBasicAuth(req, clientId, _clientSecret);
                 req.contentType = "application/x-www-form-urlencoded";
                 req.headers["Accept"] = "application/json";
                 req.bodyWriter.write(formEncode(params));
