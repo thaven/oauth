@@ -1,5 +1,5 @@
 /++
-    OAuth2 client module
+    OAuth 2.0 client module
 
     Copyright: © 2016 Harry T. Vennik
     License: Subject to the terms of the MIT license, as written in the included LICENSE file.
@@ -40,6 +40,32 @@ class OAuthSettings
     string clientSecret;
     string redirectUri;
 
+    /++
+        Construct OAuthSettings from JSON object.
+
+        The following keys must be in the JSON object:
+        $(TABLE
+            $(TR $(TH Key) $(TH Type) $(TH Description))
+            $(TR $(TD provider) $(TD string or object) $(TD The registered name
+                of the authentication provider to be used or an object with the
+                following keys:
+                $(TABLE
+                    $(TR $(TH Key) $(TH Type) $(TH Description))
+                    $(TR $(TD name) $(TD string) $(TD $(I (Optional)) Name for
+                        this provider. If a name is given and automatic
+                        registration is enabled, the provider can be referenced
+                        by just it's name in subsequent calls.))
+                    $(TR $(TD authUri) $(TD string) $(TD Authentication uri))
+                    $(TR $(TD tokenUri) $(TD string) $(TD Token uri))
+                )))
+            $(TR $(TD clientId) $(TD string) $(TD The client ID to use in client
+                authentication for the given provider.))
+            $(TR $(TD clientSecret) $(TD string) $(TD The client secret to use
+                in client authentication for the given provider.))
+            $(TR $(TD redirectUri) $(TD string) $(TD The uri identifying this
+                application, the user agent will be redirected to this uri
+                (with some query parameters added) after authorization.)))
+      +/
     this(in Json config) immutable @system
     {
         auto sp = (config["provider"].type == Json.Type.string)
@@ -52,6 +78,19 @@ class OAuthSettings
             config["redirectUri"].get!string);
     }
 
+    /++
+        Construct OAuthSettings providing settings directly.
+
+        Params:
+            provider = The registered name of the authentication provider.
+            clientId = The client ID to use in client authentication for the
+                given provider.
+            clientSecret = The client secret to use in client authentication
+                for the given provider.
+            redirectUri = The uri identifying this application, the user agent
+                will be redirected to this uri (with some query parameters
+                added) after authorization.
+      +/
     this(
         string provider,
         string clientId,
@@ -332,6 +371,11 @@ class OAuthSession
 {
     /++
         Authorize an HTTP request using this session's token.
+
+        When implementing a REST interface client for a service using OAuth,
+        you may want to set $(D vibe.web.rest.RestInterfaceClient.requestFilter)
+        to a delegate to this method, so authentication will be handled
+        automatically.
 
         This implementation only supports, and blindly assumes, the 'bearer'
         token type. Subclasses should override this if support for other token
