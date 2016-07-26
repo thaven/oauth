@@ -126,7 +126,7 @@ class OAuthSettings
         which should be returned by the service as a query string
         parameter when the user agent is redirected back to this client.
         The user session can be started by passing this parameter
-        to the ($D userSession) method, along with the authorization
+        to the $(D userSession) method, along with the authorization
         code.
 
         Params:
@@ -164,12 +164,12 @@ class OAuthSettings
     }
 
     /++
-        User login helper method, complementary to ($D userAuthUri).
+        User login helper method, complementary to $(D userAuthUri).
 
         Use this method to start a session with user impersonation. The
         authorizationCode MUST be obtained by redirection of the user
-        agent to an URI obtained through ($D userAuthUri), otherwise
-        there would not be a valid ($D state).
+        agent to an URI obtained through $(D userAuthUri), otherwise
+        there would not be a valid $(D state).
 
         Params:
             httpSession = The current HTTP session.
@@ -181,7 +181,7 @@ class OAuthSettings
 
         Returns: The new session.
 
-        Throws: ($D OAuthException) if any of the latter two arguments is
+        Throws: $(D OAuthException) if any of the latter two arguments is
         invalid or authentication fails otherwise.
       +/
     final
@@ -283,7 +283,7 @@ class OAuthSettings
 
         Returns: The new session.
 
-        Throws: ($D OAuthException) if authentication fails.
+        Throws: $(D OAuthException) if authentication fails.
       +/
     final
     OAuthSession clientSession(string[] scopes = null) immutable @system
@@ -568,7 +568,7 @@ class OAuthException : Exception
 {
     /++
         Returns: the error code returned by the authentication server, or
-        ($D null) if this exception was raised due to a client side error
+        $(D null) if this exception was raised due to a client side error
         condition. Error codes are defined in RFC 6749 section 5.2.
       +/
     string specErrCode() @property const nothrow @nogc
@@ -579,7 +579,7 @@ class OAuthException : Exception
     /++
         Returns: a URI identifying a human-readable web page with information
         about the error, used to provide the client developer with additional
-        information about the error. Returns ($D null) if either the server
+        information about the error. Returns $(D null) if either the server
         did not return an error URI, or this exception was raised due to a
         client side error condition.
       +/
@@ -589,7 +589,7 @@ class OAuthException : Exception
     }
 
     /++
-        Creates a new instance of ($D OAuthException) representing a client
+        Creates a new instance of $(D OAuthException) representing a client
         side error condition.
         
         Params:
@@ -607,7 +607,7 @@ class OAuthException : Exception
     }
 
     /++
-        Creates a new instance of ($D OAuthException) based on an error
+        Creates a new instance of $(D OAuthException) based on an error
         response from the authentication server.
         
         Params:
