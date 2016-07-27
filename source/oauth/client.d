@@ -230,7 +230,7 @@ class OAuthSettings
         if (ld.scopes)
             params["scope"] = ld.scopes;
 
-        auto session = newSession();
+        auto session = provider._sessionFactory(this);
         requestAuthorization(session, params);
         return session;
     }
@@ -276,7 +276,7 @@ class OAuthSettings
         if (scopes)
             params["scope"] = join(scopes, ' ');
 
-        auto session = newSession();
+        auto session = provider._sessionFactory(this);
         requestAuthorization(session, params);
         return session;
     }
@@ -306,14 +306,9 @@ class OAuthSettings
         if (scopes)
             params["scope"] = join(scopes, ' ');
 
-        auto session = newSession();
+        auto session = provider._sessionFactory(this);
         requestAuthorization(session, params);
         return session;
-    }
-    
-    OAuthSession newSession() immutable nothrow @safe
-    {
-        return new OAuthSession(this);
     }
 
     private:
@@ -499,7 +494,12 @@ class OAuthProvider
 
         /* Set once and never changed, synchronization not necessary. */
         __gshared bool allowAutoRegister = true;
+
+        SessionFactory _sessionFactory;
     }
+
+    alias OAuthSession function(
+        immutable OAuthSettings) nothrow SessionFactory;
 
     string authUri;
     string tokenUri;
@@ -549,10 +549,13 @@ class OAuthProvider
 
     this(
         string authUri,
-        string tokenUri) immutable
+        string tokenUri,
+        SessionFactory sessionFactory
+            = (settings) => new OAuthSession(settings)) immutable
     {
         this.authUri = authUri;
         this.tokenUri = tokenUri;
+        this._sessionFactory = sessionFactory;
 
         this.authUriParsed = URL(authUri);
     }
