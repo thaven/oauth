@@ -13,6 +13,7 @@ import vibe.data.json;
 import vibe.http.auth.basic_auth;
 import vibe.http.client;
 import vibe.http.session;
+import vibe.inet.url;
 import vibe.inet.webform;
 
 import core.atomic;
@@ -158,7 +159,15 @@ class OAuthSettings
         reqParams["state"] = Base64URLNoPadding.encode(key);
         httpSession.set("oauth.authorization", LoginData(t, rnd, scopesJoined));
 
-        return provider.authUri ~ '?' ~ reqParams.formEncode();
+        URL uri = provider.authUriParsed;
+        auto qs = reqParams.formEncode();
+
+        if (uri.queryString.length)
+            uri.queryString = uri.queryString ~ '&' ~ qs;
+        else
+            uri.queryString = qs;
+
+        return uri.toString;
     }
 
     /++
@@ -495,6 +504,8 @@ class OAuthProvider
     string authUri;
     string tokenUri;
 
+    URL authUriParsed;
+
     /++
         Disables automatic registration of authentication servers from JSON
         config.
@@ -538,10 +549,12 @@ class OAuthProvider
 
     this(
         string authUri,
-        string tokenUri) immutable nothrow @safe
+        string tokenUri) immutable
     {
         this.authUri = authUri;
         this.tokenUri = tokenUri;
+
+        this.authUriParsed = URL(authUri);
     }
 
     private:
