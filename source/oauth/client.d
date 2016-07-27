@@ -23,8 +23,6 @@ import std.format;
 import std.string : split, join;
 import std.uni : toLower;
 
-@safe:
-
 /++
     Settings for an OAuth 2.0 client application.
 
@@ -66,7 +64,7 @@ class OAuthSettings
                 application, the user agent will be redirected to this uri
                 (with some query parameters added) after authorization.)))
       +/
-    this(in Json config) immutable @system
+    this(in Json config) immutable
     {
         auto sp = (config["provider"].type == Json.Type.string)
             ? OAuthProvider.forName(config["provider"].get!string)
@@ -95,7 +93,7 @@ class OAuthSettings
         string provider,
         string clientId,
         string clientSecret,
-        string redirectUri) immutable nothrow
+        string redirectUri) immutable nothrow @safe
     {
         this(OAuthProvider.forName(provider),
             clientId, clientSecret, redirectUri);
@@ -107,7 +105,7 @@ class OAuthSettings
         immutable OAuthProvider provider,
         string clientId,
         string clientSecret,
-        string redirectUri) immutable nothrow
+        string redirectUri) immutable nothrow @safe
     {
         this.provider = provider;
         this.clientId = clientId;
@@ -140,7 +138,7 @@ class OAuthSettings
     final
     string userAuthUri(
         scope Session httpSession,
-        string[] scopes = null) immutable @system
+        string[] scopes = null) immutable
     {
         import std.random : uniform;
 
@@ -188,7 +186,7 @@ class OAuthSettings
     OAuthSession userSession(
         scope Session httpSession,
         string state,
-        string authorizationCode) immutable @system
+        string authorizationCode) immutable
     in
     {
         assert (httpSession && state && authorizationCode);
@@ -249,7 +247,7 @@ class OAuthSettings
     OAuthSession userSession(
         string username,
         string password,
-        string[] scopes) immutable @system
+        string[] scopes) immutable
     in
     {
         assert(username);
@@ -286,7 +284,7 @@ class OAuthSettings
         Throws: $(D OAuthException) if authentication fails.
       +/
     final
-    OAuthSession clientSession(string[] scopes = null) immutable @system
+    OAuthSession clientSession(string[] scopes = null) immutable
     out(result)
     {
         assert(result !is null);
@@ -304,7 +302,7 @@ class OAuthSettings
         return session;
     }
     
-    OAuthSession newSession() immutable nothrow
+    OAuthSession newSession() immutable nothrow @safe
     {
         return new OAuthSession(this);
     }
@@ -318,7 +316,7 @@ class OAuthSettings
         string  scopes;
     }
 
-    static loginKey(SysTime t, ulong rnd, in string scopes)
+    static loginKey(SysTime t, ulong rnd, in string scopes) @safe
     {
         import std.digest.crc : crc32Of;
         import std.digest.sha : sha256Of;
@@ -333,7 +331,7 @@ class OAuthSettings
 
     void requestAuthorization(
         OAuthSession session,
-        string[string] params) immutable @system
+        string[string] params) immutable
     in
     {
         assert(session !is null);
@@ -387,7 +385,7 @@ class OAuthSession
         Throws: OAuthException if this session doesn't have any access token,
         or the access token has expired and cannot be refreshed.
       +/
-    void setAuthorizationHeader(HTTPClientRequest req) @system
+    void setAuthorizationHeader(HTTPClientRequest req)
     {
         enforce!OAuthException(_token, "No access token available.");
         
@@ -403,7 +401,7 @@ class OAuthSession
         Throws: OAuthException if no refresh token is available.
       +/
     final
-    void refresh() @system
+    void refresh()
     {
         enforce!OAuthException(_refreshToken, "No refresh token is available.");
     
@@ -418,7 +416,7 @@ class OAuthSession
         _settings.requestAuthorization(this, params);
     }
     
-    bool hasScope(string someScope) const nothrow
+    bool hasScope(string someScope) const nothrow @safe
     {
         return canFind(_scopes, someScope);
     }
@@ -431,7 +429,7 @@ class OAuthSession
         Params:
             settings = OAuth client settings.
       +/
-    this(immutable OAuthSettings settings) nothrow
+    this(immutable OAuthSettings settings) nothrow @safe
     {
         _settings = settings;
     }
@@ -449,7 +447,7 @@ class OAuthSession
         Params:
             atr = Access token response
       +/
-    void handleAccessTokenResponse(Json atr) @system
+    void handleAccessTokenResponse(Json atr)
     {
         if ("error" in atr)
             throw new OAuthException(atr);
@@ -507,7 +505,7 @@ class OAuthProvider
 
         Should be called only once and before using any OAuth functions.
       +/
-    static disableAutoRegister() nothrow @system
+    static disableAutoRegister() nothrow
     {
         static shared bool calledBefore;
 
@@ -540,7 +538,7 @@ class OAuthProvider
 
     this(
         string authUri,
-        string tokenUri) immutable nothrow
+        string tokenUri) immutable nothrow @safe
     {
         this.authUri = authUri;
         this.tokenUri = tokenUri;
@@ -548,7 +546,7 @@ class OAuthProvider
 
     private:
 
-    this(in Json json) immutable @system
+    this(in Json json) immutable
     {
         this(json["authUri"].get!string,
             json["tokenUri"].get!string);
@@ -571,7 +569,7 @@ class OAuthException : Exception
         $(D null) if this exception was raised due to a client side error
         condition. Error codes are defined in RFC 6749 section 5.2.
       +/
-    string specErrCode() @property const nothrow @nogc
+    string specErrCode() @property const nothrow @safe @nogc
     {
         return _err_rfc6749;
     }
@@ -583,7 +581,7 @@ class OAuthException : Exception
         did not return an error URI, or this exception was raised due to a
         client side error condition.
       +/
-    string errorUri() @property const nothrow @nogc
+    string errorUri() @property const nothrow @safe @nogc
     {
         return _err_uri;
     }
@@ -599,7 +597,7 @@ class OAuthException : Exception
         string msg,
         string file = __FILE__,
         size_t line = __LINE__,
-        Throwable next = null) pure nothrow @nogc
+        Throwable next = null) pure nothrow @safe @nogc
     {
         super(msg, file, line, next);
         _err_rfc6749 = null;
@@ -617,7 +615,7 @@ class OAuthException : Exception
         Json errorResponse,
         string file = __FILE__,
         size_t line = __LINE__,
-        Throwable next = null) @system
+        Throwable next = null)
     in
     {
         assert("error" in errorResponse);
@@ -641,7 +639,7 @@ class OAuthException : Exception
     immutable string _err_rfc6749;
     immutable string _err_uri;
 
-    string _defaultOAuthErrorDescription(string err) pure
+    string _defaultOAuthErrorDescription(string err) pure @safe
     {
         switch(err)
         {
