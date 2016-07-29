@@ -159,6 +159,8 @@ class OAuthSettings
         reqParams["state"] = Base64URLNoPadding.encode(key);
         httpSession.set("oauth.authorization", LoginData(t, rnd, scopesJoined));
 
+        provider.authUriHandler(this, reqParams);
+
         URL uri = provider.authUriParsed;
         auto qs = reqParams.formEncode();
 
@@ -350,11 +352,7 @@ class OAuthSettings
         requestHTTP(
             provider.tokenUri,
             delegate void(scope HTTPClientRequest req) {
-                req.method = HTTPMethod.POST;
-                addBasicAuth(req, clientId, clientSecret);
-                req.contentType = "application/x-www-form-urlencoded";
-                req.headers["Accept"] = "application/json";
-                req.bodyWriter.write(formEncode(params));
+                provider.tokenRequestor(this, params, req);
             },
             delegate void(scope HTTPClientResponse res) {
                 enforce(res.statusCode == 200, new OAuthException(
@@ -558,6 +556,22 @@ class OAuthProvider
         this._sessionFactory = sessionFactory;
 
         this.authUriParsed = URL(authUri);
+    }
+
+    protected:
+
+    void authUriHandler(immutable OAuthSettings, string[string]) const { }
+
+    void tokenRequestor(
+        in OAuthSettings settings,
+        string[string] params,
+        scope HTTPClientRequest req) const
+    {
+        req.method = HTTPMethod.POST;
+        addBasicAuth(req, settings.clientId, settings.clientSecret);
+        req.contentType = "application/x-www-form-urlencoded";
+        req.headers["Accept"] = "application/json";
+        req.bodyWriter.write(formEncode(params));
     }
 
     private:
