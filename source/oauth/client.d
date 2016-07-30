@@ -155,11 +155,13 @@ class OAuthSettings
         auto t = Clock.currTime;
         auto rnd = uniform!ulong;
 
+        provider.authUriHandler(this, reqParams);
+
         auto key = loginKey(t, rnd, scopesJoined);
         reqParams["state"] = Base64URLNoPadding.encode(key);
-        httpSession.set("oauth.authorization", LoginData(t, rnd, scopesJoined));
 
-        provider.authUriHandler(this, reqParams);
+        httpSession.set("oauth.authorization", LoginData(t, rnd, scopesJoined,
+            cast(bool) ("redirect_uri" in reqParams)));
 
         URL uri = provider.authUriParsed;
         auto qs = reqParams.formEncode();
@@ -227,7 +229,9 @@ class OAuthSettings
         string[string] params;
         params["grant_type"] = "authorization_code";
         params["code"] = authorizationCode;
-        params["redirect_uri"] = redirectUri;
+
+        if (ld.redirectUriRequired)
+            params["redirect_uri"] = redirectUri;
 
         if (ld.scopes)
             params["scope"] = ld.scopes;
@@ -320,6 +324,7 @@ class OAuthSettings
         SysTime timestamp;
         ulong   randomId;
         string  scopes;
+        bool    redirectUriRequired;
     }
 
     static loginKey(SysTime t, ulong rnd, in string scopes) @safe
