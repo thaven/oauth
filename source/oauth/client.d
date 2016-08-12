@@ -100,9 +100,7 @@ class OAuthSettings
             clientId, clientSecret, redirectUri);
     }
 
-    private:
-
-    this(
+    private this(
         immutable OAuthProvider provider,
         string clientId,
         string clientSecret,
