@@ -39,6 +39,8 @@ class OAuthSettings
     string clientSecret;
     string redirectUri;
 
+    private ubyte[] _hash;
+
     /++
         Construct OAuthSettings from JSON object.
 
@@ -110,6 +112,9 @@ class OAuthSettings
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.redirectUri = redirectUri;
+
+        import std.digest.sha : sha256Of;
+        _hash = sha256Of(provider.tokenUri ~ ' ' ~ clientId);
     }
 
     /++
@@ -344,6 +349,7 @@ class OAuthSettings
     in
     {
         assert(session !is null);
+        assert(session._settings == this || session._settings._hash == _hash);
     }
     out
     {
@@ -472,6 +478,20 @@ class OAuthSession
         // TODO: Use splitter that is nothrow
         try return split(this.scopeString, ' ');
         catch assert(false); // should never actually throw
+    }
+
+    /++
+        Unique signature of this session.
+      +/
+    string signature() @property const
+    {
+        import std.digest.sha : sha256Of, toHexString;
+
+        auto base =
+            _settings._hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
+            cast(ubyte[]) (this.classinfo.name ~ ": " ~ _tokenData.toString());
+
+        return toHexString(sha256Of(base)).idup;
     }
 
     protected:
