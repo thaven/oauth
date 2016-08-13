@@ -8,6 +8,8 @@
   ],
   "targetType" : "library",
   "dependencies" : {
-    "vibe-d" : "~>0.7.21"
+    "vibe-d:core" : "~>0.7.27",
+    "vibe-d:data" : "*",
+    "vibe-d:http" : "*"
   }
 }
