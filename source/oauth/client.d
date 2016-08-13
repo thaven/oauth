@@ -364,7 +364,12 @@ class OAuthSettings
                 enforce!OAuthException(res.contentType == "application/json",
                     "Unacceptable response content type.");
 
-                session.handleAccessTokenResponse(res.readJson);
+                SysTime httpDate;
+                if (auto pResDate = "Date" in res.headers)
+                    try httpDate = parseRFC822DateTime(*pResDate);
+                    catch (DateTimeException) { }
+
+                session.handleAccessTokenResponse(res.readJson, httpDate);
             }
         );
     }
@@ -451,8 +456,12 @@ class OAuthSession
 
         Params:
             atr = Access token response
+            timestamp = Best approximation available of the token generation
+                time. May be used in token expiration time calculations.
+                (Optional, $(D Clock.currTime) is used if omitted or set to
+                $(D SysTime.init)).
       +/
-    void handleAccessTokenResponse(Json atr)
+    void handleAccessTokenResponse(Json atr, SysTime timestamp = SysTime.init)
     {
         if ("error" in atr)
             throw new OAuthException(atr);
@@ -462,7 +471,8 @@ class OAuthSession
             format("Unsupported token type: %s", atr["token_type"].get!string));
             
         _token = atr["access_token"].get!string;
-        _expirationTime = Clock.currTime +
+        _expirationTime =
+            ((timestamp != SysTime.init) ? timestamp : Clock.currTime) +
             seconds(atr["expires_in"].get!long);
 
         if (auto tmp = "refresh_token" in atr)
