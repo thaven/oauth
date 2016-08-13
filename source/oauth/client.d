@@ -325,7 +325,7 @@ class OAuthSettings
     {
         auto data = httpSession.get!(OAuthSession.SaveData)("oauth.session");
         auto session = provider._sessionFactory(this);
-        session.handleAccessTokenResponse(data.tokenData, data.timestamp);
+        session.handleAccessTokenResponse(data.tokenData, data.timestamp, true);
 
         enforce!OAuthException(session.signature == data.signature,
             "Failed to load session: signature mismatch.");
@@ -557,14 +557,31 @@ class OAuthSession
                 time. May be used in token expiration time calculations.
                 (Optional, $(D Clock.currTime) is used if omitted or set to
                 $(D SysTime.init)).
+            isReload = True if this is called in the process of loading a
+                persisted session. If this is $(D true), timestamp is required.
+
+        Throws: OAuthException if: $(UL
+            $(LI $(D atr) is an error response;)
+            $(LI $(D atr) is missing required fields;)
+            $(LI $(D atr) contains an unsupported token type;)
+            $(LI $(D timestamp) is not set for a reload.))
       +/
-    void handleAccessTokenResponse(Json atr, SysTime timestamp = SysTime.init)
+    void handleAccessTokenResponse(
+        Json atr,
+        SysTime timestamp = SysTime.init,
+        bool isReload = false)
     {
         if ("error" in atr)
             throw new OAuthException(atr);
 
+        if (timestamp == SysTime.init)
+        {
+            enforce!OAuthException(!isReload, "Timestamp required on reload.");
+            timestamp = Clock.currTime;
+        }
+
         _tokenData = atr;
-        _timestamp = (timestamp != SysTime.init) ? timestamp : Clock.currTime;
+        _timestamp = timestamp;
 
         enforce(this.tokenType == "bearer", new OAuthException(
             format("Unsupported token type: %s", this.tokenType)));
