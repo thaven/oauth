@@ -241,6 +241,7 @@ class OAuthSettings
 
         auto session = provider._sessionFactory(this);
         requestAuthorization(session, params);
+        session.save(httpSession);
         return session;
     }
 
@@ -319,6 +320,19 @@ class OAuthSettings
         requestAuthorization(session, params);
         return session;
     }
+
+    OAuthSession loadSession(scope Session httpSession) immutable
+    {
+        auto data = httpSession.get!(OAuthSession.SaveData)("oauth.session");
+        auto session = provider._sessionFactory(this);
+        session.handleAccessTokenResponse(data.tokenData, data.timestamp);
+
+        enforce!OAuthException(session.signature == data.signature,
+            "Failed to load session: signature mismatch.");
+
+        return session;
+    }
+
 
     private:
 
@@ -598,6 +612,19 @@ class OAuthSession
         catch (Exception) { }
 
         throw new OAuthException("No refresh token is available.");
+    }
+
+    struct SaveData
+    {
+        SysTime timestamp;
+        Json tokenData;
+        string signature;
+    }
+
+    void save(scope Session httpSession) const
+    {
+        httpSession.set("oauth.session",
+            SaveData(_timestamp, _tokenData, this.signature));
     }
 }
 
