@@ -347,8 +347,8 @@ class OAuthSettings
     }
     out
     {
-        assert(session._token);
-        assert(session._expirationTime > Clock.currTime);
+        assert(session.token);
+        assert(session.expires > Clock.currTime);
     }
     body
     {
@@ -386,6 +386,13 @@ class OAuthSettings
 
 class OAuthSession
 {
+    private
+    {
+        immutable OAuthSettings _settings;
+        SysTime _timestamp;
+        Json _tokenData;
+    }
+
     /++
         Authorize an HTTP request using this session's token.
 
@@ -406,40 +413,67 @@ class OAuthSession
       +/
     void setAuthorizationHeader(HTTPClientRequest req)
     {
-        enforce!OAuthException(_token, "No access token available.");
-        
-        if (Clock.currTime > _expirationTime)
+        enforce!OAuthException(token, "No access token available.");
+
+        if (Clock.currTime > this.expires)
             refresh();
 
-        req.headers["Authorization"] = "Bearer " ~ _token;
+        req.headers["Authorization"] = "Bearer " ~ this.token;
     }
-    
+
     /++
         Refresh the access token of this session.
 
-        Throws: OAuthException if no refresh token is available.
+        Throws: OAuthException if no refresh token is available or the
+            authorization fails otherwise.
       +/
     final
     void refresh()
     {
-        enforce!OAuthException(_refreshToken, "No refresh token is available.");
-    
         string[string] params;
         params["grant_type"] = "refresh_token";
-        params["refresh_token"] = _refreshToken;
+        params["refresh_token"] = this.refreshToken;
         params["redirect_uri"] = _settings.redirectUri;
 
-        if (_scopes)
-            params["scope"] = join(_scopes, ' ');
-        
         _settings.requestAuthorization(this, params);
     }
-    
-    bool hasScope(string someScope) const nothrow @safe
+
+    /++
+        Indicates whether this session has authorization for the given scope.
+
+        Params:
+            someScope = The scope to test for. Only one scope identifier may
+                be specified, so the string should not contain whitespace.
+
+        Returns: $(D true) if $(D someScope) is listed in this session's scopes.
+      +/
+    bool hasScope(string someScope) const nothrow
     {
-        return canFind(_scopes, someScope);
+        return canFind(this.scopes, someScope);
     }
-    
+
+    /++
+        Expiration time of this session's access token.
+
+        Please note that, if $(D canRefresh) is $(D true), this is not the end
+        of the session lifetime.
+      +/
+    SysTime expires() @property const nothrow
+    {
+        try return _timestamp + _tokenData["expires_in"].get!long.seconds;
+        catch (Exception) return SysTime.max;
+    }
+
+    /++
+        All scopes this session has authorization for.
+      +/
+    string[] scopes() @property const nothrow
+    {
+        // TODO: Use splitter that is nothrow
+        try return split(this.scopeString, ' ');
+        catch assert(false); // should never actually throw
+    }
+
     protected:
 
     /++
@@ -474,31 +508,58 @@ class OAuthSession
     {
         if ("error" in atr)
             throw new OAuthException(atr);
-        
-        enforce!OAuthException(
-            atr["token_type"].get!string.toLower() == "bearer",
-            format("Unsupported token type: %s", atr["token_type"].get!string));
-            
-        _token = atr["access_token"].get!string;
-        _expirationTime =
-            ((timestamp != SysTime.init) ? timestamp : Clock.currTime) +
-            seconds(atr["expires_in"].get!long);
 
-        if (auto tmp = "refresh_token" in atr)
-            _refreshToken = tmp.get!string;
-        
-        if (auto tmp = "scope" in atr)
-            _scopes = split(tmp.get!string, ' ');
+        _tokenData = atr;
+        _timestamp = (timestamp != SysTime.init) ? timestamp : Clock.currTime;
+
+        enforce(this.tokenType == "bearer", new OAuthException(
+            format("Unsupported token type: %s", this.tokenType)));
+
+        enforce!OAuthException(this.token, "No token received.");
+    }
+
+    string scopeString() @property const nothrow
+    {
+        try
+            if (auto pScope = "scope" in _tokenData)
+                return pScope.get!string;
+        catch (Exception) { }
+
+        return null;
+    }
+
+    string token() @property const nothrow
+    {
+        try
+            if (auto pToken = "access_token" in _tokenData)
+                return pToken.get!string;
+        catch (Exception) { }
+
+        return null;
+    }
+
+    string tokenType() @property const nothrow
+    {
+        try
+            if (auto pType = "token_type" in _tokenData)
+                return pType.get!string.toLower();
+        catch (Exception) { }
+
+        return null;
     }
 
     private:
-    immutable OAuthSettings _settings;
-    string _token;
-    SysTime _expirationTime;
-    string _refreshToken;
-    string[] _scopes;
-}
 
+    string refreshToken() @property const
+    {
+        try
+            if (auto pToken = "refresh_token" in _tokenData)
+                return pToken.get!string;
+        catch (Exception) { }
+
+        throw new OAuthException("No refresh token is available.");
+    }
+}
 
 /++
     Represents an OAuth 2.0 authentication server.
