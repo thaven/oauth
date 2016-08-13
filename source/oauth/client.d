@@ -411,6 +411,10 @@ class OAuthSession
         token type. Subclasses should override this if support for other token
         types is required.
 
+        If this instance is mutable and the access token has expired and a
+        refresh token is available, a new access token will automatically
+        requested by a call to $(D refresh).
+
         Params:
             req = HTTPClientRequest object
 
@@ -424,6 +428,13 @@ class OAuthSession
         if (Clock.currTime > this.expires)
             refresh();
 
+        req.headers["Authorization"] = "Bearer " ~ this.token;
+    }
+
+    /// ditto
+    void setAuthorizationHeader(HTTPClientRequest req) const
+    {
+        enforce!OAuthException(token, "No access token available.");
         req.headers["Authorization"] = "Bearer " ~ this.token;
     }
 
