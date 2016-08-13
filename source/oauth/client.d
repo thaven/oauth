@@ -369,7 +369,16 @@ class OAuthSettings
                     try httpDate = parseRFC822DateTime(*pResDate);
                     catch (DateTimeException) { }
 
-                session.handleAccessTokenResponse(res.readJson, httpDate);
+                Json atr = res.readJson;
+
+                // Authorization servers MAY omit the scope field in the
+                // access token response if it would be equal to the scope
+                // field specified in the access token request.
+                if ("access_token" in atr &&
+                    "scope" !in atr && "scope" in params)
+                    atr["scope"] = params["scope"];
+
+                session.handleAccessTokenResponse(atr, httpDate);
             }
         );
     }
