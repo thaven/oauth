@@ -445,6 +445,15 @@ class OAuthSession
     }
 
     /++
+        Indicates whether this session can refresh its access token.
+      +/
+    bool canRefresh() @property const nothrow
+    {
+        try return ("refresh_token" in _tokenData) !is null;
+        catch (Exception) return false;
+    }
+
+    /++
         Indicates whether this session has authorization for the given scope.
 
         Params:
