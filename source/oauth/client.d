@@ -366,7 +366,7 @@ class OAuthSettings
     in
     {
         assert(session !is null);
-        assert(session._settings == this || session._settings._hash == _hash);
+        assert(session.settings == this || session.settings._hash == _hash);
     }
     out
     {
@@ -409,9 +409,10 @@ class OAuthSettings
 
 class OAuthSession
 {
+    protected immutable OAuthSettings settings;
+
     private
     {
-        immutable OAuthSettings _settings;
         SysTime _timestamp;
         Json _tokenData;
     }
@@ -467,9 +468,9 @@ class OAuthSession
         string[string] params;
         params["grant_type"] = "refresh_token";
         params["refresh_token"] = this.refreshToken;
-        params["redirect_uri"] = _settings.redirectUri;
+        params["redirect_uri"] = settings.redirectUri;
 
-        _settings.requestAuthorization(this, params);
+        settings.requestAuthorization(this, params);
     }
 
     /++
@@ -525,7 +526,7 @@ class OAuthSession
         import std.digest.sha : sha256Of, toHexString;
 
         auto base =
-            _settings._hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
+            settings._hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
             cast(ubyte[]) (this.classinfo.name ~ ": " ~ _tokenData.toString());
 
         return toHexString(sha256Of(base)).idup;
@@ -541,7 +542,7 @@ class OAuthSession
       +/
     this(immutable OAuthSettings settings) nothrow @safe
     {
-        _settings = settings;
+        this.settings = settings;
     }
 
     /++
@@ -590,6 +591,22 @@ class OAuthSession
             format("Unsupported token type: %s", this.tokenType)));
 
         enforce!OAuthException(this.token, "No token received.");
+    }
+
+    /++
+        Timestamp of this session
+      +/
+    SysTime timestamp() @property const nothrow
+    {
+        return _timestamp;
+    }
+
+    /++
+        Json object from the access token response
+      +/
+    const(Json) tokenData() @property const nothrow
+    {
+        return _tokenData;
     }
 
     string scopeString() @property const nothrow
