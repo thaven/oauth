@@ -323,6 +323,9 @@ class OAuthSettings
 
     OAuthSession loadSession(scope Session httpSession) immutable
     {
+        if (!httpSession.isKeySet("oauth.session"))
+            return null;
+
         auto data = httpSession.get!(OAuthSession.SaveData)("oauth.session");
         auto session = provider._sessionFactory(this);
         session.handleAccessTokenResponse(data.tokenData, data.timestamp, true);
