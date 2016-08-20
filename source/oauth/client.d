@@ -415,6 +415,7 @@ class OAuthSession
     {
         SysTime _timestamp;
         Json _tokenData;
+        string _signature;
     }
 
     /++
@@ -523,13 +524,7 @@ class OAuthSession
       +/
     string signature() @property const
     {
-        import std.digest.sha : sha256Of, toHexString;
-
-        auto base =
-            settings.hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
-            cast(ubyte[]) (this.classinfo.name ~ ": " ~ _tokenData.toString());
-
-        return toHexString(sha256Of(base)).idup;
+        return _signature;
     }
 
     protected:
@@ -584,6 +579,7 @@ class OAuthSession
             timestamp = Clock.currTime;
         }
 
+        _signature = null;
         _tokenData = atr;
         _timestamp = timestamp;
 
@@ -591,6 +587,8 @@ class OAuthSession
             format("Unsupported token type: %s", this.tokenType)));
 
         enforce!OAuthException(this.token, "No token received.");
+
+        this.sign();
     }
 
     /++
@@ -637,6 +635,17 @@ class OAuthSession
         catch (Exception) { }
 
         return null;
+    }
+
+    void sign()
+    {
+        import std.digest.sha : sha256Of, toHexString;
+
+        auto base =
+            settings.hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
+            cast(ubyte[]) (this.classinfo.name ~ ": " ~ _tokenData.toString());
+
+        _signature = sha256Of(base).toHexString;
     }
 
     private:
