@@ -39,7 +39,7 @@ class OAuthSettings
     string clientSecret;
     string redirectUri;
 
-    private ubyte[] _hash;
+    package ubyte[] hash;
 
     /++
         Construct OAuthSettings from JSON object.
@@ -114,7 +114,7 @@ class OAuthSettings
         this.redirectUri = redirectUri;
 
         import std.digest.sha : sha256Of;
-        _hash = sha256Of(provider.tokenUri ~ ' ' ~ clientId);
+        this.hash = sha256Of(provider.tokenUri ~ ' ' ~ clientId);
     }
 
     /++
@@ -366,7 +366,7 @@ class OAuthSettings
     in
     {
         assert(session !is null);
-        assert(session.settings == this || session.settings._hash == _hash);
+        assert(session.settings == this || session.settings.hash == this.hash);
     }
     out
     {
@@ -526,7 +526,7 @@ class OAuthSession
         import std.digest.sha : sha256Of, toHexString;
 
         auto base =
-            settings._hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
+            settings.hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
             cast(ubyte[]) (this.classinfo.name ~ ": " ~ _tokenData.toString());
 
         return toHexString(sha256Of(base)).idup;
