@@ -446,7 +446,7 @@ class OAuthSession
     {
         enforce!OAuthException(token, "No access token available.");
 
-        if (Clock.currTime > this.expires)
+        if (this.expired)
             refresh();
 
         req.headers["Authorization"] = "Bearer " ~ this.token;
@@ -497,6 +497,15 @@ class OAuthSession
     bool hasScope(string someScope) const nothrow
     {
         return canFind(this.scopes, someScope);
+    }
+
+    /++
+        True if this session's access token has expired
+      +/
+    final
+    bool expired() @property const
+    {
+        return (Clock.currTime > this.expires);
     }
 
     /++
