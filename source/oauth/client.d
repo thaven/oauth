@@ -145,6 +145,7 @@ class OAuthSettings
         string[] scopes = null) immutable
     {
         import std.random : uniform;
+        import std.digest.digest : toHexString;
 
         string[string] reqParams;
         string scopesJoined = join(scopes, ' ');
@@ -165,6 +166,7 @@ class OAuthSettings
 
         httpSession.set("oauth.authorization", LoginData(t, rnd, scopesJoined,
             cast(bool) ("redirect_uri" in reqParams)));
+        httpSession.set("oauth.client", toHexString(this.hash));
 
         URL uri = provider.authUriParsed;
         auto qs = reqParams.formEncode();
