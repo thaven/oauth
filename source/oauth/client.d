@@ -494,6 +494,7 @@ class OAuthSession
 
         Returns: $(D true) if $(D someScope) is listed in this session's scopes.
       +/
+    final
     bool hasScope(string someScope) const nothrow
     {
         return canFind(this.scopes, someScope);
