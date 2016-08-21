@@ -46,8 +46,6 @@ class OAuthWebapp
     {
         enforce(_settingsMap.length > 0);
 
-        OAuthSession session;
-
         if (!req.session)
             req.session = res.startSession();
         else if (auto pCE = req.session.id in _sessionCache)
@@ -65,7 +63,7 @@ class OAuthWebapp
         {
             string hash = req.session.get!string("oauth.client");
             auto settings = _settingsMap[hash].get;
-            session = settings.loadSession(req.session);
+            auto session = settings.loadSession(req.session);
 
             if (!session && "code" in req.query && "state" in req.query)
                 session = settings.userSession(
