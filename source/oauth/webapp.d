@@ -52,8 +52,13 @@ class OAuthWebapp
             req.session = res.startSession();
         else if (auto pCE = req.session.id in _sessionCache)
         {
-            pCE.timestamp = Clock.currTime;
-            return;
+            if (pCE.session.verify(req.session))
+            {
+                pCE.timestamp = Clock.currTime;
+                return;
+            }
+            else
+                _sessionCache.remove(req.session.id);
         }
 
         if (req.session.isKeySet("oauth.client"))

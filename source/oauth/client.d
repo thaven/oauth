@@ -539,6 +539,28 @@ class OAuthSession
         return _signature;
     }
 
+    /++
+        Verify if this is the session referenced by $(D httpSession).
+
+        Params:
+            httpSession = a HTTP session.
+
+        Returns: True if $(D httpSession) contains this session's signature.
+      +/
+    bool verify(scope Session httpSession) const nothrow
+    {
+        try
+        {
+            if (!httpSession.isKeySet("oauth.session"))
+                return false;
+
+            auto data = httpSession.get!SaveData("oauth.session");
+            return data.signature == _signature;
+        }
+        catch (Exception)
+            return false;
+    }
+
     protected:
 
     /++
