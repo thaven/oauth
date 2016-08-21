@@ -16,17 +16,17 @@ import std.typecons : Rebindable;
 
 immutable(OAuthSettings)[] loadConfig(string path)
 {
-	immutable(OAuthSettings)[] cfg;
-	auto json = path.readFileUTF8.parseJsonString();
+    immutable(OAuthSettings)[] cfg;
+    auto json = path.readFileUTF8.parseJsonString();
 
     if (json.type == Json.Type.object)
-	{
-    	cfg ~= new immutable(OAuthSettings)(json);
+    {
+        cfg ~= new immutable(OAuthSettings)(json);
     }
     else
     {
-    	foreach (settingsJObj; json)
-			cfg ~= new immutable(OAuthSettings)(settingsJObj);
+        foreach (settingsJObj; json)
+            cfg ~= new immutable(OAuthSettings)(settingsJObj);
     }
 
     return cfg;

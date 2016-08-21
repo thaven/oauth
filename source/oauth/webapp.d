@@ -39,34 +39,34 @@ class OAuthWebapp
     }
 
     final
-	void performOAuth(
+    void performOAuth(
         scope HTTPServerRequest req,
         scope HTTPServerResponse res,
         string[] scopes = null)
-	{
-    	enforce(_settingsMap.length > 0);
+    {
+        enforce(_settingsMap.length > 0);
 
-		OAuthSession session;
+        OAuthSession session;
 
-		if (!req.session)
-        	req.session = res.startSession();
+        if (!req.session)
+            req.session = res.startSession();
         else if (auto pCE = req.session.id in _sessionCache)
         {
             pCE.timestamp = Clock.currTime;
             return;
         }
 
-		if (req.session.isKeySet("oauth.client"))
+        if (req.session.isKeySet("oauth.client"))
         {
-        	string hash = req.session.get!string("oauth.client");
-			auto settings = _settingsMap[hash].get;
-			session = settings.loadSession(req.session);
+            string hash = req.session.get!string("oauth.client");
+            auto settings = _settingsMap[hash].get;
+            session = settings.loadSession(req.session);
 
             if (!session)
             {
-            	res.redirect(settings.userAuthUri(req.session, scopes));
+                res.redirect(settings.userAuthUri(req.session, scopes));
                 return;
-        	}
+            }
 
             static if (__traits(compiles, req.context))
                 req.context["oauth.session"] = session;
@@ -74,5 +74,5 @@ class OAuthWebapp
                 _sessionCache[req.session.id] =
                     SessionCacheEntry(session, Clock.currTime);
         }
-	}
+    }
 }
