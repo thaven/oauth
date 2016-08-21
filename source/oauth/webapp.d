@@ -82,4 +82,20 @@ class OAuthWebapp
                     SessionCacheEntry(session, Clock.currTime);
         }
     }
+
+    /++
+        Returns the OAuthSession object associated to this request.
+
+        Always make sure that the $(D performOAuth) method is called for a
+        request before this method is used, otherwise a stale session may be
+        returned, or no session in case of a recently logged in user.
+      +/
+    final
+    OAuthSession oauthSession(in HTTPServerRequest req)
+    {
+        if (auto pCE = req.session.id in _sessionCache)
+            return pCE.session;
+
+        return null;
+    }
 }
