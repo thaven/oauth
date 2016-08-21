@@ -67,6 +67,10 @@ class OAuthWebapp
             auto settings = _settingsMap[hash].get;
             session = settings.loadSession(req.session);
 
+            if (!session && "code" in req.query && "state" in req.query)
+                session = settings.userSession(
+                    req.session, req.query["state"], req.query["code"]);
+
             if (!session)
             {
                 res.redirect(settings.userAuthUri(req.session, scopes));
