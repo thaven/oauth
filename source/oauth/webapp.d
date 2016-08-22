@@ -38,6 +38,16 @@ class OAuthWebapp
             _settingsMap[settings.hash.toHexString()] = settings;
     }
 
+    /++
+        Enforces OAuth authentication on the given req/res pair.
+
+        Params:
+            req = Request object that is to be checked
+            res = Response object that will be used to redirect the client if
+                not authenticated.
+            scopes = An array of identifiers specifying the scope of
+                the authorization requested. (optional)
+      +/
     final
     void performOAuth(
         scope HTTPServerRequest req,
@@ -81,21 +91,49 @@ class OAuthWebapp
                 _sessionCache[req.session.id] =
                     SessionCacheEntry(session, Clock.currTime);
         }
+        else
+            unauthorized(req, res, scopes);
     }
 
     /++
-        Returns the OAuthSession object associated to this request.
+        Get the OAuthSession object associated to a request.
 
         Always make sure that the $(D performOAuth) method is called for a
         request before this method is used, otherwise a stale session may be
         returned, or no session in case of a recently logged in user.
+
+        Params:
+            req = the request to get the relevant session for
+
+        Returns: The session associated to $(D req), or $(D null) if no
+            session was found.
       +/
     final
-    OAuthSession oauthSession(in HTTPServerRequest req)
+    OAuthSession oauthSession(in HTTPServerRequest req) nothrow
     {
-        if (auto pCE = req.session.id in _sessionCache)
-            return pCE.session;
+        try
+            if (auto pCE = req.session.id in _sessionCache)
+                return pCE.session;
+        catch (Exception) { }
 
         return null;
     }
+
+    protected
+
+    /++
+        Handler called by $(D performOAuth) if the request is unauthorized.
+
+        Default implementation doesn't do anything. Override it to take your
+        application specific action on unauthorized requests.
+
+        Params:
+            req = the unauthorized request
+            res = the other half of the req/res pair
+            scopes = the list of scopes passed to $(D performOAuth)
+      +/
+    void unauthorized(
+        scope HTTPServerRequest req,
+        scope HTTPServerResponse res,
+        string[] scopes) { }
 }
