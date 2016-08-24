@@ -97,9 +97,9 @@ class OAuthWebapp
 
             static if (__traits(compiles, req.context))
                 req.context["oauth.session"] = session;
-            else
-                _sessionCache[req.session.id] =
-                    SessionCacheEntry(session, Clock.currTime);
+
+            _sessionCache[req.session.id] =
+                SessionCacheEntry(session, Clock.currTime);
         }
         else
             unauthorized(req, res, scopes);
@@ -122,6 +122,10 @@ class OAuthWebapp
     OAuthSession oauthSession(in HTTPServerRequest req) nothrow
     {
         try
+            static if (__traits(compiles, req.context))
+                if (auto pCM = "oauth.session" in req.context)
+                    return pCM.get!OAuthSession;
+
             if (auto pCE = req.session.id in _sessionCache)
                 return pCE.session;
         catch (Exception) { }
