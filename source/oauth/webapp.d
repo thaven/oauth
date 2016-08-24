@@ -39,6 +39,16 @@ class OAuthWebapp
     }
 
     /++
+        Returns a request handler that enforces the request to be authenticated
+        using OAuth.
+      +/
+    final
+    HTTPServerRequestDelegateS performOAuth(string[] scopes = null)
+    {
+        return (scope req, scope res) { performOAuth(req, res, scopes); };
+    }
+
+    /++
         Enforces OAuth authentication on the given req/res pair.
 
         Params:
