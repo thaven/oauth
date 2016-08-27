@@ -11,7 +11,6 @@ import oauth.client;
 import vibe.http.server;
 
 import std.datetime : Clock, SysTime;
-import std.exception : enforce;
 import std.typecons : Rebindable;
 
 class OAuthWebapp
@@ -29,51 +28,29 @@ class OAuthWebapp
         SessionCacheEntry[string] _sessionCache;
     }
 
-    this(string path)
-    {
-        import oauth.config : loadConfig;
-        import std.digest.digest : toHexString;
-
-        foreach (settings; loadConfig(path))
-            _settingsMap[settings.hash.toHexString()] = settings;
-    }
-
     /++
-        Returns a request handler that enforces the request to be authenticated
-        using OAuth.
-      +/
-    final
-    HTTPServerRequestDelegateS performOAuth(string[] scopes = null)
-    {
-        return (scope req, scope res) { performOAuth(req, res, scopes); };
-    }
-
-    /++
-        Enforces OAuth authentication on the given req/res pair.
+        Check if a request is from a logged in user
 
         Params:
-            req = Request object that is to be checked
-            res = Response object that will be used to redirect the client if
-                not authenticated.
-            scopes = An array of identifiers specifying the scope of
-                the authorization requested. (optional)
+            req = The request to be checked
+
+        Returns: $(D true) if this request is from a logged in user.
       +/
-    final
-    void performOAuth(
-        scope HTTPServerRequest req,
-        scope HTTPServerResponse res,
-        string[] scopes = null)
+    bool isLoggedIn(
+        scope HTTPServerRequest req)
     {
-        enforce(_settingsMap.length > 0);
+        // For assert in oauthSession method
+        version(assert) req.params["oauth.debug.login.checked"] = "yes";
 
         if (!req.session)
-            req.session = res.startSession();
-        else if (auto pCE = req.session.id in _sessionCache)
+            return false;
+
+        if (auto pCE = req.session.id in _sessionCache)
         {
             if (pCE.session.verify(req.session))
             {
                 pCE.timestamp = Clock.currTime;
-                return;
+                return true;
             }
             else
                 _sessionCache.remove(req.session.id);
@@ -83,34 +60,87 @@ class OAuthWebapp
         {
             string hash = req.session.get!string("oauth.client");
             auto settings = _settingsMap[hash].get;
-            auto session = settings.loadSession(req.session);
 
-            if (!session && "code" in req.query && "state" in req.query)
-                session = settings.userSession(
-                    req.session, req.query["state"], req.query["code"]);
-
-            if (!session)
+            if (auto session =
+                settings ? settings.loadSession(req.session) : null)
             {
-                res.redirect(settings.userAuthUri(req.session, scopes));
-                return;
+                static if (__traits(compiles, req.context))
+                    req.context["oauth.session"] = session;
+
+                _sessionCache[req.session.id] =
+                    SessionCacheEntry(session, Clock.currTime);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /++
+        Perform OAuth login using the given settings
+
+        The route mapped to this method should normally match the redirectUri
+        set on the settings. If multiple providers are to be supported, there
+        should be a different route for each provider, all mapped to this
+        method, but with different settings.
+
+        If the request looks like a redirect back from the authentication
+        server, $(D settings.userSession) is called to obtain an OAuthSession.
+
+        Otherwise, the user agent is redirected to the authentication server.
+
+        Params:
+            req = The request
+            res = Response object to be used to redirect the client to the
+                authentication server
+            settings = The OAuth settings that apply to this login attempt
+            scopes = An array of identifiers specifying the scope of
+                the authorization requested. (optional)
+      +/
+    void login(
+        scope HTTPServerRequest req,
+        scope HTTPServerResponse res,
+        immutable OAuthSettings settings,
+        string[] scopes = null)
+    {
+        if (req.session && "code" in req.query && "state" in req.query)
+        {
+            if (settings.hash !in _settingsMap)
+            {
+                import std.digest.digest : toHexString;
+                _settingsMap[settings.hash.toHexString()] = settings;
             }
 
-            static if (__traits(compiles, req.context))
-                req.context["oauth.session"] = session;
+            auto session = settings.userSession(
+                req.session, req.query["state"], req.query["code"]);
 
-            _sessionCache[req.session.id] =
-                SessionCacheEntry(session, Clock.currTime);
+            if (session)
+            {
+                _sessionCache[req.session.id] =
+                    SessionCacheEntry(session, Clock.currTime);
+
+                // For assert in oauthSession method
+                version(assert) req.params["oauth.debug.login.checked"] = "yes";
+            }
         }
         else
-            unauthorized(req, res, scopes);
+        {
+            if (!req.session)
+                req.session = res.startSession();
+
+            res.redirect(settings.userAuthUri(req.session, scopes));
+        }
     }
 
     /++
         Get the OAuthSession object associated to a request.
 
-        Always make sure that the $(D performOAuth) method is called for a
-        request before this method is used, otherwise a stale session may be
-        returned, or no session in case of a recently logged in user.
+        This method is optimized for speed. It just performs a session cache
+        lookup and doesn't do any validation.
+
+        Always make sure that either $(D login) or $(D isLoggedIn) has been
+        called for a request before this method is used.
 
         Params:
             req = the request to get the relevant session for
@@ -120,6 +150,11 @@ class OAuthWebapp
       +/
     final
     OAuthSession oauthSession(in HTTPServerRequest req) nothrow
+    in
+    {
+        assert (req.params.get("oauth.debug.login.checked", "no") == "yes");
+    }
+    body
     {
         try
             static if (__traits(compiles, req.context))
@@ -132,22 +167,4 @@ class OAuthWebapp
 
         return null;
     }
-
-    protected
-
-    /++
-        Handler called by $(D performOAuth) if the request is unauthorized.
-
-        Default implementation doesn't do anything. Override it to take your
-        application specific action on unauthorized requests.
-
-        Params:
-            req = the unauthorized request
-            res = the other half of the req/res pair
-            scopes = the list of scopes passed to $(D performOAuth)
-      +/
-    void unauthorized(
-        scope HTTPServerRequest req,
-        scope HTTPServerResponse res,
-        string[] scopes) { }
 }
