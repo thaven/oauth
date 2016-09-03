@@ -106,11 +106,11 @@ class OAuthWebapp
     {
         if (req.session && "code" in req.query && "state" in req.query)
         {
-            if (settings.hash !in _settingsMap)
-            {
-                import std.digest.digest : toHexString;
-                _settingsMap[settings.hash.toHexString()] = settings;
-            }
+            import std.digest.digest : toHexString;
+            auto hashString = settings.hash.toHexString();
+
+            if (hashString !in _settingsMap)
+                _settingsMap[hashString] = settings;
 
             auto session = settings.userSession(
                 req.session, req.query["state"], req.query["code"]);
@@ -152,17 +152,20 @@ class OAuthWebapp
     OAuthSession oauthSession(in HTTPServerRequest req) nothrow
     in
     {
-        assert (req.params.get("oauth.debug.login.checked", "no") == "yes");
+        try assert (req.params.get("oauth.debug.login.checked", "no") == "yes");
+        catch assert(false);
     }
     body
     {
         try
+        {
             static if (__traits(compiles, req.context))
                 if (auto pCM = "oauth.session" in req.context)
                     return pCM.get!OAuthSession;
 
             if (auto pCE = req.session.id in _sessionCache)
                 return pCE.session;
+        }
         catch (Exception) { }
 
         return null;
