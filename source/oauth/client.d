@@ -387,6 +387,7 @@ class OAuthSettings
         requestHTTP(
             provider.tokenUri,
             delegate void(scope HTTPClientRequest req) {
+                req.headers["Accept"] = "application/json";
                 provider.tokenRequestor(this, params, req);
             },
             delegate void(scope HTTPClientResponse res) {
@@ -809,7 +810,6 @@ class OAuthProvider
         req.method = HTTPMethod.POST;
         addBasicAuth(req, settings.clientId, settings.clientSecret);
         req.contentType = "application/x-www-form-urlencoded";
-        req.headers["Accept"] = "application/json";
         req.bodyWriter.write(formEncode(params));
     }
 

@@ -91,7 +91,6 @@ class FacebookAuthProvider : OAuthProvider
     {
         params["client_id"] = settings.clientId;
         params["client_secret"] = settings.clientSecret;
-        req.headers["Accept"] = "application/json";
         req.requestURL = req.requestURL ~ '?' ~ formEncode(params);
     }
 }
