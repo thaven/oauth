@@ -377,6 +377,13 @@ class OAuthSettings
     }
     body
     {
+        static bareMimeType(scope string type) pure @safe
+        {
+            import std.string : indexOf, strip;
+            auto idx = type.indexOf(';');
+            return type[0 .. ((idx >= 0) ? idx : $)].strip();
+        }
+
         requestHTTP(
             provider.tokenUri,
             delegate void(scope HTTPClientRequest req) {
@@ -386,8 +393,10 @@ class OAuthSettings
                 enforce(res.statusCode == 200, new OAuthException(
                     format("Auth server responded with HTTP status %d %s",
                         res.statusCode, res.statusPhrase)));
-                enforce!OAuthException(res.contentType == "application/json",
-                    "Unacceptable response content type.");
+
+                auto contentType = bareMimeType(res.contentType);
+                enforce!OAuthException(contentType == "application/json",
+                    "Unacceptable response content type: " ~ contentType);
 
                 SysTime httpDate;
                 if (auto pResDate = "Date" in res.headers)
