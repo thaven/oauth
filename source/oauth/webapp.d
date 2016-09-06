@@ -13,6 +13,9 @@ import vibe.http.server;
 import std.datetime : Clock, SysTime;
 import std.typecons : Rebindable;
 
+/++
+    Convenience oauth API wrapper for web applications
+  +/
 class OAuthWebapp
 {
     private
