@@ -452,7 +452,7 @@ class OAuthSession
         Throws: OAuthException if this session doesn't have any access token,
         or the access token has expired and cannot be refreshed.
       +/
-    void setAuthorizationHeader(HTTPClientRequest req)
+    void authorizeRequest(HTTPClientRequest req)
     {
         enforce!OAuthException(token, "No access token available.");
 
@@ -461,6 +461,9 @@ class OAuthSession
 
         req.headers["Authorization"] = "Bearer " ~ this.token;
     }
+
+    deprecated("Use authorizeRequest instead of setAuthorizationHeader.")
+    alias authorizeRequest setAuthorizationHeader;
 
     /// ditto
     void setAuthorizationHeader(HTTPClientRequest req) const
