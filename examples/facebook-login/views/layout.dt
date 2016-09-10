@@ -1,0 +1,7 @@
+doctype html
+html
+	head
+		title Facebook authentication example
+	body
+		block body
+

@@ -1,0 +1,9 @@
+extends layout
+
+block body
+    h1 Welcome #{ userInfo["first_name"].get!string }
+    p You've been logged in successfully!
+    p Facebook told me your name is #{ userInfo["first_name"].get!string }
+        | #{ userInfo["last_name"].get!string } and your email address is
+        | #{ userInfo["email"].get!string }.
+
