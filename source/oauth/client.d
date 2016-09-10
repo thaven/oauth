@@ -452,7 +452,7 @@ class OAuthSession
         Throws: OAuthException if this session doesn't have any access token,
         or the access token has expired and cannot be refreshed.
       +/
-    void authorizeRequest(HTTPClientRequest req)
+    void authorizeRequest(scope HTTPClientRequest req)
     {
         enforce!OAuthException(token, "No access token available.");
 
@@ -463,7 +463,7 @@ class OAuthSession
     }
 
     /// ditto
-    void authorizeRequest(HTTPClientRequest req) const
+    void authorizeRequest(scope HTTPClientRequest req) const
     {
         enforce!OAuthException(token, "No access token available.");
         req.headers["Authorization"] = "Bearer " ~ this.token;
