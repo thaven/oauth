@@ -462,15 +462,15 @@ class OAuthSession
         req.headers["Authorization"] = "Bearer " ~ this.token;
     }
 
-    deprecated("Use authorizeRequest instead of setAuthorizationHeader.")
-    alias authorizeRequest setAuthorizationHeader;
-
     /// ditto
-    void setAuthorizationHeader(HTTPClientRequest req) const
+    void authorizeRequest(HTTPClientRequest req) const
     {
         enforce!OAuthException(token, "No access token available.");
         req.headers["Authorization"] = "Bearer " ~ this.token;
     }
+
+    deprecated("Use authorizeRequest instead of setAuthorizationHeader.")
+    alias authorizeRequest setAuthorizationHeader;
 
     /++
         Refresh the access token of this session.
