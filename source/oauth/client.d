@@ -737,6 +737,7 @@ class OAuthProvider
         __gshared bool allowAutoRegister = true;
 
         SessionFactory _sessionFactory;
+        URL authUriParsed;
     }
 
     alias OAuthSession function(
@@ -745,7 +746,6 @@ class OAuthProvider
     string authUri;
     string tokenUri;
 
-    URL authUriParsed;
 
     /++
         Disables automatic registration of authentication servers from JSON
