@@ -22,7 +22,7 @@ to. When the authorization code is received, through redirection back to the
 application, call `userSession` to obtain the `OAuthSession`.
 
 An `OAuthSession` holds an access token and optionally a refresh token. Use its
-`setAuthorizationHeader` method to apply the access token to an
+`authorizeRequest` method to apply the access token to an
 [HTTPClientRequest](http://vibed.org/api/vibe.http.client/HTTPClientRequest).
 If the access token  has expired, it will automatically be refreshed, if a
 refresh token is available.

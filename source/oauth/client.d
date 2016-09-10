@@ -1,5 +1,5 @@
 /++
-    OAuth 2.0 client module
+    OAuth 2.0 _client module
 
     Copyright: © 2016 Harry T. Vennik
     License: Subject to the terms of the MIT license, as written in the included LICENSE file.
@@ -83,11 +83,11 @@ class OAuthSettings
         Construct OAuthSettings providing settings directly.
 
         Params:
-            provider = The registered name of the authentication provider.
-            clientId = The client ID to use in client authentication for the
-                given provider.
+            provider = The registered name of the authentication _provider.
+            clientId = The client ID to use in client authentication for
+                provider.
             clientSecret = The client secret to use in client authentication
-                for the given provider.
+                for provider.
             redirectUri = The uri identifying this application, the user agent
                 will be redirected to this uri (with some query parameters
                 added) after authorization.
@@ -128,7 +128,7 @@ class OAuthSettings
         which should be returned by the service as a query string
         parameter when the user agent is redirected back to this client.
         The user session can be started by passing this parameter
-        to the $(D userSession) method, along with the authorization
+        to the `userSession` method, along with the authorization
         code.
 
         Params:
@@ -180,16 +180,16 @@ class OAuthSettings
     }
 
     /++
-        User login helper method, complementary to $(D userAuthUri).
+        User login helper method, complementary to `userAuthUri`.
 
         Use this method to start a session with user impersonation. The
         authorizationCode MUST be obtained by redirection of the user
-        agent to an URI obtained through $(D userAuthUri), otherwise
-        there would not be a valid $(D state).
+        agent to an URI obtained through `userAuthUri`, otherwise
+        there would not be a valid state.
 
         Params:
             httpSession = The current HTTP session.
-            state = OAuth state obtained from the 'state' query string parameter
+            state = OAuth state obtained from the '_state' query string parameter
                 of the request URL.
             authorizationCode = the authorization code obtained from the
                 service. It will be in the 'code' parameter in the query
@@ -197,7 +197,7 @@ class OAuthSettings
 
         Returns: The new session.
 
-        Throws: $(D OAuthException) if any of the latter two arguments is
+        Throws: OAuthException if any of the latter two arguments is
         invalid or authentication fails otherwise.
       +/
     final
@@ -248,17 +248,17 @@ class OAuthSettings
     }
 
     /++
-        Start a session on behalf of the resource owner, using username and
-        password for authentication.
+        Start a session on behalf of the resource owner, using _username and
+        _password for authentication.
 
-        This authentication flow MUST be used only as a last resort, as it
-        requires exposal of the plain username and password to the client.
+        This authentication flow SHOULD be used only as a last resort, as it
+        requires exposal of the plain _username and _password to the client.
 
         Params:
-            username = The resource owner's username.
-            password = The resource owner's password.
+            username = The resource owner's _username.
+            password = The resource owner's _password.
             scopes = An array of strings representing the scope of the
-                authorization request. (may be null)
+                authorization request. (may be `null`)
 
         Throws: OAuthException if user authentication fails or the client could
             not be granted access on behalf of the resource owner for any scope
@@ -302,7 +302,7 @@ class OAuthSettings
 
         Returns: The new session.
 
-        Throws: $(D OAuthException) if authentication fails.
+        Throws: OAuthException if authentication fails.
       +/
     final
     OAuthSession clientSession(string[] scopes = null) immutable
@@ -419,6 +419,9 @@ class OAuthSettings
     }
 }
 
+/++
+    Holds an access token and optionally a refresh token.
+  +/
 class OAuthSession
 {
     protected immutable OAuthSettings settings;
@@ -434,8 +437,8 @@ class OAuthSession
         Authorize an HTTP request using this session's token.
 
         When implementing a REST interface client for a service using OAuth,
-        you may want to set $(D vibe.web.rest.RestInterfaceClient.requestFilter)
-        to a delegate to this method, so authentication will be handled
+        you may want to set `vibe.web.rest.RestInterfaceClient.requestFilter`
+        to a delegate to this method, so authorization will be handled
         automatically.
 
         This implementation only supports, and blindly assumes, the 'bearer'
@@ -444,10 +447,10 @@ class OAuthSession
 
         If this instance is mutable and the access token has expired and a
         refresh token is available, a new access token will automatically
-        requested by a call to $(D refresh).
+        requested by a call to `refresh`.
 
         Params:
-            req = HTTPClientRequest object
+            req = The request to be authorized
 
         Throws: OAuthException if this session doesn't have any access token,
         or the access token has expired and cannot be refreshed.
@@ -505,7 +508,7 @@ class OAuthSession
             someScope = The scope to test for. Only one scope identifier may
                 be specified, so the string should not contain whitespace.
 
-        Returns: $(D true) if $(D someScope) is listed in this session's scopes.
+        Returns: `true` if someScope is listed in this session's scopes.
       +/
     final
     bool hasScope(string someScope) const nothrow
@@ -514,7 +517,7 @@ class OAuthSession
     }
 
     /++
-        True if this session's access token has expired
+        Returns: `true` if this session's access token has _expired
       +/
     final
     bool expired() @property const
@@ -525,7 +528,7 @@ class OAuthSession
     /++
         Expiration time of this session's access token.
 
-        Please note that, if $(D canRefresh) is $(D true), this is not the end
+        Please note that, if `this.canRefresh == true`, this is not the end
         of the session lifetime.
       +/
     SysTime expires() @property const nothrow
@@ -535,7 +538,7 @@ class OAuthSession
     }
 
     /++
-        All scopes this session has authorization for.
+        All _scopes this session has authorization for.
       +/
     string[] scopes() @property const nothrow
     {
@@ -545,7 +548,7 @@ class OAuthSession
     }
 
     /++
-        Unique signature of this session.
+        Unique _signature of this session.
       +/
     string signature() @property const
     {
@@ -553,12 +556,12 @@ class OAuthSession
     }
 
     /++
-        Verify if this is the session referenced by $(D httpSession).
+        Verify if this is the session referenced by the given HTTP session.
 
         Params:
-            httpSession = a HTTP session.
+            httpSession = The current HTTP session.
 
-        Returns: True if $(D httpSession) contains this session's signature.
+        Returns: `true` if httpSession contains this session's signature.
       +/
     bool verify(scope Session httpSession) const nothrow
     {
@@ -580,7 +583,7 @@ class OAuthSession
         Constructor
 
         Params:
-            settings = OAuth client settings.
+            settings = OAuth client _settings.
       +/
     this(immutable OAuthSettings settings) nothrow @safe
     {
@@ -599,18 +602,18 @@ class OAuthSession
 
         Params:
             atr = Access token response
-            timestamp = Best approximation available of the token generation
-                time. May be used in token expiration time calculations.
-                (Optional, $(D Clock.currTime) is used if omitted or set to
-                $(D SysTime.init)).
-            isReload = True if this is called in the process of loading a
-                persisted session. If this is $(D true), timestamp is required.
+            timestamp = (Optional) Best approximation available of the token
+                generation time. May be used in token expiration time
+                calculations. `Clock.currTime` is used if timestamp is omitted
+                or set to `SysTime.init`.
+            isReload = `true` if this is called in the process of loading a
+                persisted session. If this is `true`, timestamp is required.
 
         Throws: OAuthException if: $(UL
-            $(LI $(D atr) is an error response;)
-            $(LI $(D atr) is missing required fields;)
-            $(LI $(D atr) contains an unsupported token type;)
-            $(LI $(D timestamp) is not set for a reload.))
+            $(LI atr is an error response;)
+            $(LI atr is missing required fields;)
+            $(LI atr contains an unsupported token type;)
+            $(LI timestamp is not set for a reload.))
       +/
     void handleAccessTokenResponse(
         Json atr,
@@ -741,11 +744,10 @@ class OAuthProvider
     }
 
     alias OAuthSession function(
-        immutable OAuthSettings) nothrow SessionFactory;
+        immutable OAuthSettings) nothrow SessionFactory; ///
 
-    string authUri;
-    string tokenUri;
-
+    string authUri;     ///
+    string tokenUri;    ///
 
     /++
         Disables automatic registration of authentication servers from JSON
@@ -765,6 +767,12 @@ class OAuthProvider
             allowAutoRegister = false;
     }
 
+    /++
+        Get provider by name
+
+        Params:
+            name = The name of the provider
+      +/
     static forName(string name) nothrow @trusted
     {
         // TODO: investigate why 'synchronized' is not nothrow
@@ -778,6 +786,13 @@ class OAuthProvider
         return null;
     }
 
+    /++
+        Register a provider
+
+        Params:
+            name = The name of the provider
+            srv = The provider to register
+      +/
     static register(string name, immutable OAuthProvider srv) nothrow @trusted
     {
         // TODO: investigate why 'synchronized' is not nothrow
@@ -788,6 +803,15 @@ class OAuthProvider
             assert (false);
     }
 
+    /++
+        Constructor
+
+        Params:
+            authUri = Authorization URI for this provider.
+            tokenUri = Token URI for this provider.
+            sessionFactory = (Optional) function that returns a new session
+                object compatible with this provider.
+      +/
     this(
         string authUri,
         string tokenUri,
@@ -838,7 +862,7 @@ class OAuthException : Exception
 {
     /++
         Returns: the error code returned by the authentication server, or
-        $(D null) if this exception was raised due to a client side error
+        `null` if this exception was raised due to a client side error
         condition. Error codes are defined in RFC 6749 section 5.2.
       +/
     string specErrCode() @property const nothrow @safe @nogc
@@ -849,7 +873,7 @@ class OAuthException : Exception
     /++
         Returns: a URI identifying a human-readable web page with information
         about the error, used to provide the client developer with additional
-        information about the error. Returns $(D null) if either the server
+        information about the error. Returns `null` if either the server
         did not return an error URI, or this exception was raised due to a
         client side error condition.
       +/
@@ -859,7 +883,7 @@ class OAuthException : Exception
     }
 
     /++
-        Creates a new instance of $(D OAuthException) representing a client
+        Creates a new instance of OAuthException representing a client
         side error condition.
         
         Params:
@@ -877,7 +901,7 @@ class OAuthException : Exception
     }
 
     /++
-        Creates a new instance of $(D OAuthException) based on an error
+        Creates a new instance of `OAuthException` based on an error
         response from the authentication server.
         
         Params:

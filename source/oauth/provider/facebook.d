@@ -56,6 +56,12 @@ class FacebookAuthSettings : OAuthSettings
     }
 }
 
+/++
+    Facebook specialized derivative of OAuthProvider.
+
+    This class should not be used directly. It registers itself as an
+    OAuthProvider with name `facebook`.
++/
 class FacebookAuthProvider : OAuthProvider
 {
     shared static this()

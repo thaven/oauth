@@ -81,7 +81,7 @@ class OAuthWebapp
     }
 
     /++
-        Perform OAuth login using the given settings
+        Perform OAuth _login using the given _settings
 
         The route mapped to this method should normally match the redirectUri
         set on the settings. If multiple providers are to be supported, there
@@ -89,7 +89,7 @@ class OAuthWebapp
         method, but with different settings.
 
         If the request looks like a redirect back from the authentication
-        server, $(D settings.userSession) is called to obtain an OAuthSession.
+        server, settings.userSession is called to obtain an OAuthSession.
 
         Otherwise, the user agent is redirected to the authentication server.
 
@@ -97,9 +97,9 @@ class OAuthWebapp
             req = The request
             res = Response object to be used to redirect the client to the
                 authentication server
-            settings = The OAuth settings that apply to this login attempt
-            scopes = An array of identifiers specifying the scope of
-                the authorization requested. (optional)
+            settings = The OAuth settings that apply to this _login attempt
+            scopes = (Optional) An array of identifiers specifying the scope of
+                the authorization requested.
       +/
     void login(
         scope HTTPServerRequest req,
@@ -142,13 +142,13 @@ class OAuthWebapp
         This method is optimized for speed. It just performs a session cache
         lookup and doesn't do any validation.
 
-        Always make sure that either $(D login) or $(D isLoggedIn) has been
+        Always make sure that either `login` or `isLoggedIn` has been
         called for a request before this method is used.
 
         Params:
             req = the request to get the relevant session for
 
-        Returns: The session associated to $(D req), or $(D null) if no
+        Returns: The session associated to req, or `null` if no
             session was found.
       +/
     final
