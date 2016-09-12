@@ -11,7 +11,7 @@ shared static this()
     auto webapp = new OAuthWebapp;
     string[] scopes = [ "email" ];
 
-	auto router = new URLRouter;
+    auto router = new URLRouter;
 
     router.get("/logout", delegate void(scope req, scope res) {
         res.terminateSession();
@@ -28,7 +28,7 @@ shared static this()
             webapp.login(req, res, oauthSettings, scopes);
     });
 
-	router.get("/", delegate (req, res) {
+    router.get("/", delegate (req, res) {
         assert (webapp.isLoggedIn(req));
 
         auto session = webapp.oauthSession(req);
@@ -46,10 +46,10 @@ shared static this()
         res.render!("index.dt", userInfo);
     });
 
-	auto settings = new HTTPServerSettings;
-	settings.sessionStore = new MemorySessionStore;
-	settings.port = 8080;
+    auto settings = new HTTPServerSettings;
+    settings.sessionStore = new MemorySessionStore;
+    settings.port = 8080;
 
-	listenHTTP(settings, router);
+    listenHTTP(settings, router);
 }
 
