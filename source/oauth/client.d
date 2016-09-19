@@ -34,10 +34,10 @@ import std.uni : toLower;
   +/
 class OAuthSettings
 {
-    OAuthProvider provider;
-    string clientId;
-    string clientSecret;
-    string redirectUri;
+    OAuthProvider provider; ///
+    string clientId;        ///
+    string clientSecret;    ///
+    string redirectUri;     ///
 
     package ubyte[] hash;
 
