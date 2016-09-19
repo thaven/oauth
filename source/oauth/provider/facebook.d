@@ -34,7 +34,7 @@ class FacebookAuthSettings : OAuthSettings
         Additionally, this constructor supports the following JSON key:
         $(TABLE
             $(TR $(TH Key) $(TH Type) $(TH Description))
-            $(TR $(TD auth_type) $(TD string) $(TD If set to "rerequest",
+            $(TR $(TD authType) $(TD string) $(TD If set to "rerequest",
                 force Facebook to ask te user again for permissions that
                 were previously denied by the user.)))
       +/
@@ -50,7 +50,14 @@ class FacebookAuthSettings : OAuthSettings
             config["clientSecret"].get!string,
             config["redirectUri"].get!string);
 
-        if (config["auth_type"].type == Json.Type.string
+        if (config["authType"].type == Json.Type.string
+            && config["authType"].get!string == "rerequest")
+            rerequest = true;
+
+        // Also allow for the key to be written as auth_type for compatibility
+        // with release 0.1.0.
+        // TODO: remove deprecated JSON key for facebook: auth_type
+        else if (config["auth_type"].type == Json.Type.string
             && config["auth_type"].get!string == "rerequest")
             rerequest = true;
     }
