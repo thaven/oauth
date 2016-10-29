@@ -133,6 +133,10 @@ class OAuthSettings
 
         Params:
             httpSession = The current HTTP session.
+            extraParams = Extra parameters to include in the authentication
+                uri. Use this to pass provider specific parameters that cannot
+                be included in the settings because they won't be the same for
+                every authorization request.
             scopes = An array of identifiers specifying the scope of
                 access to be requested. (optional)
 
@@ -142,13 +146,17 @@ class OAuthSettings
     final
     string userAuthUri(
         scope Session httpSession,
-        string[] scopes = null) immutable
+        in string[string] extraParams = null,
+        in string[] scopes = null) immutable
     {
         import std.random : uniform;
         import std.digest.digest : toHexString;
 
         string[string] reqParams;
         string scopesJoined = join(scopes, ' ');
+
+        foreach (k, v; extraParams)
+            reqParams[k] = v;
 
         reqParams["response_type"] = "code";
         reqParams["client_id"] = clientId;
@@ -177,6 +185,16 @@ class OAuthSettings
             uri.queryString = qs;
 
         return uri.toString;
+    }
+
+    // For compatibility with 0.1.0
+    /// ditto
+    final
+    string userAuthUri(
+        scope Session httpSession,
+        string[] scopes = null) immutable
+    {
+        return this.userAuthUri(httpSession, null, scopes);
     }
 
     /++

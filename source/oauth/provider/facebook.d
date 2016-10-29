@@ -92,7 +92,7 @@ class FacebookAuthProvider : OAuthProvider
         params["redirect_uri"] = settings.redirectUri;
 
         if (auto fbSettings = cast(immutable FacebookAuthSettings) settings)
-            if (fbSettings.rerequest)
+            if ("auth_type" !in params && fbSettings.rerequest)
                 params["auth_type"] = "rerequest";
     }
 
