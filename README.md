@@ -9,9 +9,10 @@ compatible. Especially between versions 0.0.1 and 0.1.0 the API changed a lot.
 
 Full documentation is in the source, here is just an overview of the 0.1.0+ API.
 
-You'll need at least one `OAuthProvider`. Preliminary support for Facebook is
-included. You generally don't reference instances of this class directly, except
-when registering a custom provider.
+You'll need at least one `OAuthProvider`. Support for Facebook, Google and Azure
+is included, though the latter two are to be considered beta. You generally
+don't reference instances of this class directly, except when registering a
+custom provider.
 
 An `OAuthSettings` instance contains application-specific settings, such as the
 client id, for use with a particular provider. Also it provides methods to
