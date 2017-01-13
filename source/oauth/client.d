@@ -562,7 +562,7 @@ class OAuthSession
     {
         // TODO: Use splitter that is nothrow
         try return split(this.scopeString, ' ');
-        catch assert(false); // should never actually throw
+        catch (Exception) assert(false); // should never actually throw
     }
 
     /++

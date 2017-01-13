@@ -156,7 +156,7 @@ class OAuthWebapp
     in
     {
         try assert (req.params.get("oauth.debug.login.checked", "no") == "yes");
-        catch assert(false);
+        catch (Exception) assert(false);
     }
     body
     {
