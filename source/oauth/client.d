@@ -149,6 +149,7 @@ class OAuthSettings
         in string[string] extraParams = null,
         in string[] scopes = null) immutable
     {
+        import std.array : Appender;
         import std.random : uniform;
         import std.digest.digest : toHexString;
 
@@ -177,12 +178,14 @@ class OAuthSettings
         httpSession.set("oauth.client", toHexString(this.hash));
 
         URL uri = provider.authUriParsed;
-        auto qs = reqParams.formEncode();
-
+        Appender!string app;
         if (uri.queryString.length)
-            uri.queryString = uri.queryString ~ '&' ~ qs;
-        else
-            uri.queryString = qs;
+        {
+            app.put(uri.queryString);
+            app.put('&');
+        }
+        app.formEncode(reqParams);
+        uri.queryString = app.data;
 
         return uri.toString;
     }
