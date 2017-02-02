@@ -60,6 +60,7 @@ class OAuthWebapp
                 _sessionCache.remove(req.session.id);
         }
 
+        // TODO: it could be faster to use the result of .get directly
         if (req.session.isKeySet("oauth.client"))
         {
             string hash = req.session.get!string("oauth.client");
@@ -111,6 +112,7 @@ class OAuthWebapp
         in string[string] extraParams = null,
         in string[] scopes = null)
     {
+        // redirect from the authentication server
         if (req.session && "code" in req.query && "state" in req.query)
         {
             import std.digest.digest : toHexString;
@@ -159,6 +161,7 @@ class OAuthWebapp
     OAuthSession oauthSession(scope HTTPServerRequest req) nothrow
     in
     {
+        // https://issues.dlang.org/show_bug.cgi?id=17136 - dictionary get is not nothrow
         try assert (req.params.get("oauth.debug.login.checked", "no") == "yes");
         catch (Exception) assert(false);
     }

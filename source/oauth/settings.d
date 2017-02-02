@@ -133,6 +133,7 @@ class OAuthSettings
         this.redirectUri = redirectUri;
 
         import std.digest.sha : sha256Of;
+        assert(this.provider !is null, "Invalid provider selected");
         this.hash = sha256Of(provider.tokenUri ~ ' ' ~ clientId);
     }
 
@@ -174,22 +175,22 @@ class OAuthSettings
         import vibe.inet.webform : formEncode;
 
         string[string] reqParams;
-        string scopesJoined = join(scopes, ' ');
 
         foreach (k, v; extraParams)
             reqParams[k] = v;
 
+        // the oAuth server returns a code with which a token can be requested
         reqParams["response_type"] = "code";
         reqParams["client_id"] = clientId;
 
+        string scopesJoined = join(scopes, ' ');
         if (scopesJoined)
             reqParams["scope"] = scopesJoined;
 
-        auto t = Clock.currTime;
-        auto rnd = uniform!ulong;
-
         provider.authUriHandler(this, reqParams);
 
+        auto t = Clock.currTime;
+        auto rnd = uniform!ulong;
         auto key = loginKey(t, rnd, scopesJoined);
         reqParams["state"] = Base64URLNoPadding.encode(key);
 
@@ -197,6 +198,7 @@ class OAuthSettings
             cast(bool) ("redirect_uri" in reqParams)));
         httpSession.set("oauth.client", toHexString(this.hash));
 
+        // generate redirect URI
         URL uri = provider.authUriParsed;
         Appender!string app;
         if (uri.queryString.length)

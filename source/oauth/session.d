@@ -93,9 +93,6 @@ class OAuthSession
         req.headers["Authorization"] = "Bearer " ~ this.token;
     }
 
-    deprecated("Use authorizeRequest instead of setAuthorizationHeader.")
-    alias authorizeRequest setAuthorizationHeader;
-
     /++
         Refresh the access token of this session.
 
@@ -266,7 +263,6 @@ class OAuthSession
             timestamp = Clock.currTime;
         }
 
-        _signature = null;
         _tokenData = atr;
         _timestamp = timestamp;
 
@@ -275,6 +271,7 @@ class OAuthSession
 
         enforce!OAuthException(this.token, "No token received.");
 
+        // generate new _signature
         this.sign();
     }
 
@@ -332,7 +329,9 @@ class OAuthSession
             settings.hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
             cast(ubyte[]) (this.classinfo.name ~ ": " ~ _tokenData.toString());
 
-        _signature = sha256Of(base).toHexString;
+        // TODO: for some reason the allocated string is GC collected and points
+        // to garbage (hence the need for .dup)
+        _signature = base.sha256Of.toHexString.dup;
     }
 
     private:
