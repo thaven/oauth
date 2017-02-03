@@ -24,6 +24,8 @@ import vibe.data.json : Json;
 import vibe.http.client : HTTPClientRequest;
 import vibe.http.session : Session;
 
+@safe:
+
 /++
     Holds an access token and optionally a refresh token.
   +/
@@ -325,9 +327,11 @@ class OAuthSession
     {
         import std.digest.sha : sha256Of, toHexString;
 
-        auto base =
-            settings.hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
-            cast(ubyte[]) (this.classinfo.name ~ ": " ~ _tokenData.toString());
+        auto base = () @trusted {
+            return settings.hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
+                   cast(ubyte[]) (this.classinfo.name ~ ": " ~
+                   _tokenData.toString());
+        }();
 
         // TODO: for some reason the allocated string is GC collected and points
         // to garbage (hence the need for .dup)

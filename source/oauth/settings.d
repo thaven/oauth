@@ -43,6 +43,8 @@ immutable(OAuthSettings)[] loadConfig(string path)
     return cfg;
 }
 
+@safe:
+
 /++
     Settings for an OAuth 2.0 client application.
 

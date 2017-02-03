@@ -100,7 +100,7 @@ class OAuthProvider
             authUri = Authorization URI for this provider.
             tokenUri = Token URI for this provider.
       +/
-    this(string authUri, string tokenUri) immutable
+    this(string authUri, string tokenUri) immutable @safe
     {
         this.authUri = authUri;
         this.tokenUri = tokenUri;
@@ -108,9 +108,12 @@ class OAuthProvider
         this._authUriParsed = URL(authUri);
     }
 
-//    protected:
-
-    void authUriHandler(immutable OAuthSettings, string[string]) const { }
+    // TODO: was protected
+    void authUriHandler(
+        immutable OAuthSettings,
+        string[string]) const @safe
+    {
+    }
 
     void tokenRequestor(
         in OAuthSettings settings,
@@ -134,7 +137,7 @@ class OAuthProvider
         return _authUriParsed;
     }
 
-    this(in Json json) immutable
+    this(in Json json) immutable @trusted
     {
         this(json["authUri"].get!string,
             json["tokenUri"].get!string);

@@ -11,6 +11,8 @@ module oauth.exception;
 
 import vibe.data.json : Json;
 
+@safe:
+
 /++
     Exception type used to indicate OAuth error conditions.
 
