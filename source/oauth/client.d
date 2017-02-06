@@ -245,9 +245,7 @@ class OAuthSettings
         enforce(key == loginKey(ld.timestamp, ld.randomId, ld.scopes),
             "Invalid state parameter.");
 
-        // Seems like there is no way to remove a key from a session????
-        scope(exit)
-            httpSession.set("oauth.authorization", LoginData.init);
+        scope(exit) httpSession.remove("oauth.authorization");
 
         enforce(ld.timestamp >= Clock.currTime - 1.hours,
             "Authorization challenge timeout.");
