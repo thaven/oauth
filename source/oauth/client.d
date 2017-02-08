@@ -245,7 +245,13 @@ class OAuthSettings
         enforce(key == loginKey(ld.timestamp, ld.randomId, ld.scopes),
             "Invalid state parameter.");
 
-        scope(exit) httpSession.remove("oauth.authorization");
+        scope(exit)
+        {
+            static if (__traits(compiles, httpSession.remove))
+                httpSession.remove("oauth.authorization");
+            else // Vibe.d < 0.8.0
+                httpSession.set("oauth.authorization", LoginData.init);
+        }
 
         enforce(ld.timestamp >= Clock.currTime - 1.hours,
             "Authorization challenge timeout.");
