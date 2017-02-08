@@ -659,6 +659,7 @@ class OAuthSession
 
         enforce!OAuthException(this.token, "No token received.");
 
+        // generate new _signature
         this.sign();
     }
 
@@ -716,7 +717,9 @@ class OAuthSession
             settings.hash ~ cast(ubyte[])((&_timestamp)[0 .. 1]) ~
             cast(ubyte[]) (this.classinfo.name ~ ": " ~ _tokenData.toString());
 
-        _signature = sha256Of(base).toHexString;
+        // For some reason the string returned from toHexString seems to get
+        // deallocated. Using .dup to work around.
+        _signature = base.sha256Of.toHexString.dup;
     }
 
     private:
