@@ -18,7 +18,7 @@ import oauth.provider : OAuthProvider;
 import oauth.session : OAuthSession;
 
 import std.array : join;
-import std.datetime : Clock, DateTimeException, hours, parseRFC822DateTime, SysTime;
+import std.datetime : Clock, hours, SysTime;
 import std.exception : enforce;
 import std.format : format;
 
@@ -282,8 +282,7 @@ class OAuthSettings
         if (ld.scopes)
             params["scope"] = ld.scopes;
 
-        auto session = new OAuthSession(this);
-        requestAuthorization(session, params);
+        auto session = new OAuthSession(this, params);
         session.save(httpSession);
         return session;
     }
@@ -329,9 +328,7 @@ class OAuthSettings
         if (scopes)
             params["scope"] = join(scopes, ' ');
 
-        auto session = new OAuthSession(this);
-        requestAuthorization(session, params);
-        return session;
+        return new OAuthSession(this, params);
     }
 
     /++
@@ -359,9 +356,7 @@ class OAuthSettings
         if (scopes)
             params["scope"] = join(scopes, ' ');
 
-        auto session = new OAuthSession(this);
-        requestAuthorization(session, params);
-        return session;
+        return new OAuthSession(this, params);
     }
 
     deprecated("Please use OAuthSession.load() instead.")
@@ -391,65 +386,6 @@ class OAuthSettings
         data64[1] = rnd;
         data[16 .. 20] = crc32Of(scopes);
         return sha256Of(data[]);
-    }
-
-    void requestAuthorization(
-        OAuthSession session,
-        string[string] params) immutable
-    in
-    {
-        assert(session !is null);
-        assert(session.settings == this || session.settings.hash == this.hash);
-    }
-    out
-    {
-        assert(session.token);
-        assert(session.expires > Clock.currTime);
-    }
-    body
-    {
-        import vibe.http.client :
-            requestHTTP, HTTPClientRequest, HTTPClientResponse;
-
-        static bareMimeType(scope string type) pure @safe
-        {
-            import std.string : indexOf, strip;
-            auto idx = type.indexOf(';');
-            return type[0 .. ((idx >= 0) ? idx : $)].strip();
-        }
-
-        requestHTTP(
-            provider.tokenUri,
-            delegate void(scope HTTPClientRequest req) {
-                req.headers["Accept"] = "application/json";
-                provider.tokenRequestor(this, params, req);
-            },
-            delegate void(scope HTTPClientResponse res) {
-                enforce(res.statusCode == 200, new OAuthException(
-                    format("Auth server responded with HTTP status %d %s",
-                        res.statusCode, res.statusPhrase)));
-
-                auto contentType = bareMimeType(res.contentType);
-                enforce!OAuthException(contentType == "application/json",
-                    "Unacceptable response content type: " ~ contentType);
-
-                SysTime httpDate;
-                if (auto pResDate = "Date" in res.headers)
-                    try httpDate = parseRFC822DateTime(*pResDate);
-                    catch (DateTimeException) { }
-
-                Json atr = res.readJson;
-
-                // Authorization servers MAY omit the scope field in the
-                // access token response if it would be equal to the scope
-                // field specified in the access token request.
-                if ("access_token" in atr &&
-                    "scope" !in atr && "scope" in params)
-                    atr["scope"] = params["scope"];
-
-                session.handleAccessTokenResponse(atr, httpDate);
-            }
-        );
     }
 }
 

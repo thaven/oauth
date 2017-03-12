@@ -110,7 +110,7 @@ class OAuthSession
         params["refresh_token"] = this.refreshToken;
         params["redirect_uri"] = settings.redirectUri;
 
-        settings.requestAuthorization(this, params);
+        requestAuthorization(params);
     }
 
     /++
@@ -210,18 +210,22 @@ class OAuthSession
             return false;
     }
 
-    protected:
+    package(oauth):
 
     /++
         Constructor
 
         Params:
             settings = OAuth client _settings.
+            params = Authorization request parameters
       +/
-    this(immutable OAuthSettings settings) nothrow @safe
+    this(immutable OAuthSettings settings, string[string] params)
     {
         this.settings = settings;
+        this.requestAuthorization(params);
     }
+
+    protected:
 
     /++
         Handles the response to an access token request and sets the properties
@@ -356,5 +360,57 @@ class OAuthSession
         string signature;
     }
 
+    void requestAuthorization(string[string] params)
+    out
+    {
+        assert(this.token);
+        assert(this.expires > Clock.currTime);
+    }
+    body
+    {
+        import vibe.http.client : requestHTTP, HTTPClientResponse;
+
+        static bareMimeType(scope string type) pure @safe
+        {
+            import std.string : indexOf, strip;
+            auto idx = type.indexOf(';');
+            return type[0 .. ((idx >= 0) ? idx : $)].strip();
+        }
+
+        requestHTTP(
+            settings.provider.tokenUri,
+            delegate void(scope HTTPClientRequest req) {
+                req.headers["Accept"] = "application/json";
+                settings.provider.tokenRequestor(this.settings, params, req);
+            },
+            delegate void(scope HTTPClientResponse res) {
+                import std.datetime : DateTimeException, parseRFC822DateTime;
+
+                enforce(res.statusCode == 200, new OAuthException(
+                    format("Auth server responded with HTTP status %d %s",
+                        res.statusCode, res.statusPhrase)));
+
+                auto contentType = bareMimeType(res.contentType);
+                enforce!OAuthException(contentType == "application/json",
+                    "Unacceptable response content type: " ~ contentType);
+
+                SysTime httpDate;
+                if (auto pResDate = "Date" in res.headers)
+                    try httpDate = parseRFC822DateTime(*pResDate);
+                    catch (DateTimeException) { }
+
+                Json atr = res.readJson;
+
+                // Authorization servers MAY omit the scope field in the
+                // access token response if it would be equal to the scope
+                // field specified in the access token request.
+                if ("access_token" in atr &&
+                    "scope" !in atr && "scope" in params)
+                    atr["scope"] = params["scope"];
+
+                this.handleAccessTokenResponse(atr, httpDate);
+            }
+        );
+    }
 }
 
