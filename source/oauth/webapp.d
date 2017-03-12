@@ -66,7 +66,7 @@ class OAuthWebapp
             auto settings = _settingsMap[hash].get;
 
             if (auto session =
-                settings ? settings.loadSession(req.session) : null)
+                settings ? OAuthSession.load(settings, req.session) : null)
             {
                 static if (__traits(compiles, req.context))
                     req.context["oauth.session"] = session;

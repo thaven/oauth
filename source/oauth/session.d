@@ -38,6 +38,22 @@ class OAuthSession
         string _signature;
     }
 
+    static OAuthSession load(
+        immutable OAuthSettings settings,
+        scope Session httpSession)
+    {
+        if (!httpSession.isKeySet("oauth.session"))
+            return null;
+
+        auto data = httpSession.get!(SaveData)("oauth.session");
+        auto session = new OAuthSession(settings, data);
+
+        enforce!OAuthException(session.signature == data.signature,
+            "Failed to load session: signature mismatch.");
+
+        return session;
+    }
+
     /++
         Authorize an HTTP request using this session's token.
 
@@ -95,6 +111,18 @@ class OAuthSession
         params["redirect_uri"] = settings.redirectUri;
 
         settings.requestAuthorization(this, params);
+    }
+
+    /++
+        Save this session's data into an HTTP session.
+
+        Params:
+            httpSession = target HTTP session.
+      +/
+    void save(scope Session httpSession) const
+    {
+        httpSession.set("oauth.session",
+            SaveData(_timestamp, _tokenData, this.signature));
     }
 
     /++
@@ -305,6 +333,12 @@ class OAuthSession
 
     private:
 
+    this(immutable OAuthSettings settings, SaveData data)
+    {
+        this.settings = settings;
+        this.handleAccessTokenResponse(data.tokenData, data.timestamp, true);
+    }
+
     string refreshToken() @property const
     {
         try
@@ -322,10 +356,5 @@ class OAuthSession
         string signature;
     }
 
-    void save(scope Session httpSession) const
-    {
-        httpSession.set("oauth.session",
-            SaveData(_timestamp, _tokenData, this.signature));
-    }
 }
 

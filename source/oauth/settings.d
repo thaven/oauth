@@ -364,21 +364,11 @@ class OAuthSettings
         return session;
     }
 
+    deprecated("Please use OAuthSession.load() instead.")
     OAuthSession loadSession(scope Session httpSession) immutable
     {
-        if (!httpSession.isKeySet("oauth.session"))
-            return null;
-
-        auto data = httpSession.get!(OAuthSession.SaveData)("oauth.session");
-        auto session = new OAuthSession(this);
-        session.handleAccessTokenResponse(data.tokenData, data.timestamp, true);
-
-        enforce!OAuthException(session.signature == data.signature,
-            "Failed to load session: signature mismatch.");
-
-        return session;
+        return OAuthSession.load(this, httpSession);
     }
-
 
     private:
 
