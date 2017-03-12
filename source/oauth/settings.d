@@ -24,6 +24,9 @@ import std.format : format;
 
 immutable(OAuthSettings)[] loadConfig(string path)
 {
+    import vibe.core.file : readFileUTF8;
+    import vibe.data.json : parseJsonString;
+
     immutable(OAuthSettings)[] cfg;
     auto json = path.readFileUTF8.parseJsonString();
 
@@ -168,6 +171,7 @@ class OAuthSettings
         import std.array : Appender;
         import std.random : uniform;
         import std.digest.digest : toHexString;
+        import vibe.inet.webform : formEncode;
 
         string[string] reqParams;
         string scopesJoined = join(scopes, ' ');

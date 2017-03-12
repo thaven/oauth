@@ -46,6 +46,8 @@ class OAuthProvider
       +/
     static disableAutoRegister() nothrow
     {
+        import core.atomic : cas;
+
         static shared bool calledBefore;
 
         if(cas(&calledBefore, false, true))
@@ -115,6 +117,10 @@ class OAuthProvider
         string[string] params,
         scope HTTPClientRequest req) const
     {
+        import vibe.http.common : HTTPMethod;
+        import vibe.inet.webform : formEncode;
+        import vibe.http.auth.basic_auth : addBasicAuth;
+
         req.method = HTTPMethod.POST;
         addBasicAuth(req, settings.clientId, settings.clientSecret);
         req.contentType = "application/x-www-form-urlencoded";
