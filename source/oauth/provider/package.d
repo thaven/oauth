@@ -31,7 +31,6 @@ class OAuthProvider
         /* Set once and never changed, synchronization not necessary. */
         __gshared bool allowAutoRegister = true;
 
-        SessionFactory _sessionFactory;
         URL authUriParsed;
     }
 
@@ -89,9 +88,6 @@ class OAuthProvider
             assert (false);
     }
 
-    alias OAuthSession function(
-        immutable OAuthSettings) nothrow SessionFactory; ///
-
     string authUri;     ///
     string tokenUri;    ///
 
@@ -101,18 +97,11 @@ class OAuthProvider
         Params:
             authUri = Authorization URI for this provider.
             tokenUri = Token URI for this provider.
-            sessionFactory = (Optional) function that returns a new session
-                object compatible with this provider.
       +/
-    this(
-        string authUri,
-        string tokenUri,
-        SessionFactory sessionFactory
-            = (settings) => new OAuthSession(settings)) immutable
+    this(string authUri, string tokenUri) immutable
     {
         this.authUri = authUri;
         this.tokenUri = tokenUri;
-        this._sessionFactory = sessionFactory;
 
         this.authUriParsed = URL(authUri);
     }

@@ -278,7 +278,7 @@ class OAuthSettings
         if (ld.scopes)
             params["scope"] = ld.scopes;
 
-        auto session = provider._sessionFactory(this);
+        auto session = new OAuthSession(this);
         requestAuthorization(session, params);
         session.save(httpSession);
         return session;
@@ -325,7 +325,7 @@ class OAuthSettings
         if (scopes)
             params["scope"] = join(scopes, ' ');
 
-        auto session = provider._sessionFactory(this);
+        auto session = new OAuthSession(this);
         requestAuthorization(session, params);
         return session;
     }
@@ -355,7 +355,7 @@ class OAuthSettings
         if (scopes)
             params["scope"] = join(scopes, ' ');
 
-        auto session = provider._sessionFactory(this);
+        auto session = new OAuthSession(this);
         requestAuthorization(session, params);
         return session;
     }
@@ -366,7 +366,7 @@ class OAuthSettings
             return null;
 
         auto data = httpSession.get!(OAuthSession.SaveData)("oauth.session");
-        auto session = provider._sessionFactory(this);
+        auto session = new OAuthSession(this);
         session.handleAccessTokenResponse(data.tokenData, data.timestamp, true);
 
         enforce!OAuthException(session.signature == data.signature,
