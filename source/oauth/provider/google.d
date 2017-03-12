@@ -1,13 +1,14 @@
 /++
-    Settings and customizations for provider "google"
+    OAuth 2.0 for D - Settings and customizations for provider "google"
 
-    Copyright: © 2016 Harry T. Vennik
+    Copyright: © 2016,2017 Harry T. Vennik
     License: Subject to the terms of the MIT license, as written in the included LICENSE file.
     Authors: Harry T. Vennik
   +/
 module oauth.provider.google;
 
-import oauth.client;
+import oauth.provider : OAuthProvider;
+import oauth.settings : OAuthSettings;
 
 import vibe.core.file;
 import vibe.data.json;

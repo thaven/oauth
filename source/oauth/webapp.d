@@ -7,8 +7,9 @@
   +/
 module oauth.webapp;
 
-import oauth.client;
-import vibe.http.server;
+import oauth.settings : OAuthSettings;
+import oauth.session : OAuthSession;
+import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 
 import std.datetime : Clock, SysTime;
 import std.typecons : Rebindable;
@@ -105,7 +106,8 @@ class OAuthWebapp
         scope HTTPServerRequest req,
         scope HTTPServerResponse res,
         immutable OAuthSettings settings,
-        string[] scopes = null)
+        in string[string] extraParams = null,
+        in string[] scopes = null)
     {
         if (req.session && "code" in req.query && "state" in req.query)
         {
@@ -132,7 +134,7 @@ class OAuthWebapp
             if (!req.session)
                 req.session = res.startSession();
 
-            res.redirect(settings.userAuthUri(req.session, scopes));
+            res.redirect(settings.userAuthUri(req.session, extraParams, scopes));
         }
     }
 
