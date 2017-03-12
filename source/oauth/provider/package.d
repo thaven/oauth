@@ -31,7 +31,7 @@ class OAuthProvider
         /* Set once and never changed, synchronization not necessary. */
         __gshared bool allowAutoRegister = true;
 
-        URL authUriParsed;
+        URL _authUriParsed;
     }
 
     /++
@@ -105,10 +105,10 @@ class OAuthProvider
         this.authUri = authUri;
         this.tokenUri = tokenUri;
 
-        this.authUriParsed = URL(authUri);
+        this._authUriParsed = URL(authUri);
     }
 
-    protected:
+//    protected:
 
     void authUriHandler(immutable OAuthSettings, string[string]) const { }
 
@@ -127,7 +127,12 @@ class OAuthProvider
         req.bodyWriter.write(formEncode(params));
     }
 
-    private:
+    package(oauth):
+
+    URL authUriParsed() @property pure const nothrow @safe
+    {
+        return _authUriParsed;
+    }
 
     this(in Json json) immutable
     {
