@@ -68,8 +68,10 @@ class OAuthWebapp
             if (auto session =
                 settings ? OAuthSession.load(settings, req.session) : null)
             {
+                import std.variant : Variant;
+
                 static if (__traits(compiles, req.context))
-                    req.context["oauth.session"] = session;
+                    req.context["oauth.session"] = cast(Variant) session;
 
                 _sessionCache[req.session.id] =
                     SessionCacheEntry(session, Clock.currTime);
@@ -154,7 +156,7 @@ class OAuthWebapp
             session was found.
       +/
     final
-    OAuthSession oauthSession(in HTTPServerRequest req) nothrow
+    OAuthSession oauthSession(scope HTTPServerRequest req) nothrow
     in
     {
         try assert (req.params.get("oauth.debug.login.checked", "no") == "yes");
