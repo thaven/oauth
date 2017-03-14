@@ -44,7 +44,10 @@ class OAuthWebapp
         scope HTTPServerRequest req) @safe
     {
         // For assert in oauthSession method
-        version(assert) req.params["oauth.debug.login.checked"] = "yes";
+        version(assert) () @trusted {
+            import std.variant : Variant;
+            req.context["oauth.debug.login.checked"] = cast(Variant) true;
+        } ();
 
         if (!req.session)
             return false;
@@ -130,7 +133,10 @@ class OAuthWebapp
                     SessionCacheEntry(session, Clock.currTime);
 
                 // For assert in oauthSession method
-                version(assert) req.params["oauth.debug.login.checked"] = "yes";
+                version(assert) () @trusted {
+                    import std.variant : Variant;
+                    req.context["oauth.debug.login.checked"] = cast(Variant) true;
+                } ();
             }
         }
         else
@@ -161,9 +167,11 @@ class OAuthWebapp
     OAuthSession oauthSession(scope HTTPServerRequest req) nothrow @safe
     in
     {
-        // https://issues.dlang.org/show_bug.cgi?id=17136 - dictionary get is not nothrow
-        try assert (req.params.get("oauth.debug.login.checked", "no") == "yes");
-        catch (Exception) assert(false);
+        try () @trusted {
+            assert (req.context.get("oauth.debug.login.checked").get!bool);
+        } ();
+        catch (Exception)
+            assert(false);
     }
     body
     {
