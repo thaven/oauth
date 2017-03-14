@@ -70,9 +70,7 @@ class OAuthWebapp
                 settings ? OAuthSession.load(settings, req.session) : null)
             {
                 import std.variant : Variant;
-
-                static if (__traits(compiles, req.context))
-                    req.context["oauth.session"] = cast(Variant) session;
+                req.context["oauth.session"] = cast(Variant) session;
 
                 _sessionCache[req.session.id] =
                     SessionCacheEntry(session, Clock.currTime);
@@ -169,9 +167,8 @@ class OAuthWebapp
     {
         try
         {
-            static if (__traits(compiles, req.context))
-                if (auto pCM = "oauth.session" in req.context)
-                    return pCM.get!OAuthSession;
+            if (auto pCM = "oauth.session" in req.context)
+                return pCM.get!OAuthSession;
 
             if (auto pCE = req.session.id in _sessionCache)
                 return pCE.session;
