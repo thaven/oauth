@@ -136,7 +136,7 @@ class OAuthSettings
 
         import std.digest.sha : sha256Of;
         assert(this.provider !is null, "Invalid provider selected");
-        this.hash = sha256Of(provider.tokenUri ~ ' ' ~ clientId);
+        this.hash = sha256Of(provider.tokenUri ~ ' ' ~ clientId).idup;
     }
 
     /++
