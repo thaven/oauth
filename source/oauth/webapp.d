@@ -18,17 +18,6 @@ import std.datetime : Clock, SysTime;
   +/
 class OAuthWebapp
 {
-    private
-    {
-        struct SessionCacheEntry
-        {
-            OAuthSession session;
-            SysTime timestamp;
-        }
-
-        SessionCacheEntry[string] _sessionCache;
-    }
-
     /++
         Check if a request is from a logged in user
 
@@ -54,16 +43,6 @@ class OAuthWebapp
         if (!req.session)
             return false;
 
-        if (auto pCE = req.session.id in _sessionCache)
-        {
-            if (pCE.session.verify(req.session))
-            {
-                pCE.timestamp = Clock.currTime;
-                return true;
-            }
-            else
-                _sessionCache.remove(req.session.id);
-        }
         if (auto session =
             settings ? OAuthSession.load(settings, req.session) : null)
         {
@@ -71,9 +50,6 @@ class OAuthWebapp
                 import std.variant : Variant;
                 req.context["oauth.session"] = cast(Variant) session;
             } ();
-
-            _sessionCache[req.session.id] =
-                SessionCacheEntry(session, Clock.currTime);
 
             return true;
         }
@@ -112,20 +88,14 @@ class OAuthWebapp
         // redirect from the authentication server
         if (req.session && "code" in req.query && "state" in req.query)
         {
+            // For assert in oauthSession method
+            version(assert) () @trusted {
+                import std.variant : Variant;
+                req.context["oauth.debug.login.checked"] = cast(Variant) true;
+            } ();
+
             auto session = settings.userSession(
                 req.session, req.query["state"], req.query["code"]);
-
-            if (session)
-            {
-                _sessionCache[req.session.id] =
-                    SessionCacheEntry(session, Clock.currTime);
-
-                // For assert in oauthSession method
-                version(assert) () @trusted {
-                    import std.variant : Variant;
-                    req.context["oauth.debug.login.checked"] = cast(Variant) true;
-                } ();
-            }
         }
         else
         {
@@ -139,8 +109,8 @@ class OAuthWebapp
     /++
         Get the OAuthSession object associated to a request.
 
-        This method is optimized for speed. It just performs a session cache
-        lookup and doesn't do any validation.
+        This method is optimized for speed. It just gets the OAuthSession
+        from the request context and doesn't do any validation.
 
         Always make sure that either `login` or `isLoggedIn` has been
         called for a request before this method is used.
@@ -152,26 +122,19 @@ class OAuthWebapp
             session was found.
       +/
     final
-    OAuthSession oauthSession(scope HTTPServerRequest req) nothrow @safe
+    OAuthSession oauthSession(scope HTTPServerRequest req) nothrow @trusted
     in
     {
-        try () @trusted {
+        try
             assert (req.context.get("oauth.debug.login.checked").get!bool);
-        } ();
         catch (Exception)
             assert(false);
     }
     body
     {
         try
-        {
-            if (auto pCM = "oauth.session" in req.context) () @trusted {
+            if (auto pCM = "oauth.session" in req.context)
                 return pCM.get!OAuthSession;
-            } ();
-
-            if (auto pCE = req.session.id in _sessionCache)
-                return pCE.session;
-        }
         catch (Exception) { }
 
         return null;
