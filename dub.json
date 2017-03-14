@@ -1,10 +1,11 @@
 {
   "name" : "oauth",
   "description" : "OAuth2 implementation compatible with vibe.d",
-  "copyright" : "Copyright © 2016 Harry T. Vennik",
+  "copyright" : "Copyright © 2016,2017 Harry T. Vennik",
   "license" : "MIT",
   "authors" : [
-    "Harry T. Vennik"
+    "Harry T. Vennik",
+    "Sebastian Wilzbach"
   ],
   "targetType" : "library",
   "dependencies" : {
