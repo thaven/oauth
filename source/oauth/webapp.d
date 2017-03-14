@@ -12,7 +12,6 @@ import oauth.session : OAuthSession;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 
 import std.datetime : Clock, SysTime;
-import std.typecons : Rebindable;
 
 /++
     Convenience oauth API wrapper for web applications
@@ -21,8 +20,6 @@ class OAuthWebapp
 {
     private
     {
-        Rebindable!(immutable OAuthSettings)[string] _settingsMap;
-
         struct SessionCacheEntry
         {
             OAuthSession session;
@@ -35,13 +32,18 @@ class OAuthWebapp
     /++
         Check if a request is from a logged in user
 
+        Will only detect a login using the same settings. The same provider
+        and clientId at least.
+
         Params:
             req = The request to be checked
+            settings = The _settings to be used for the login check
 
-        Returns: $(D true) if this request is from a logged in user.
+        Returns: `true` if this request is from a logged in user.
       +/
     bool isLoggedIn(
-        scope HTTPServerRequest req) @safe
+        scope HTTPServerRequest req,
+        immutable OAuthSettings settings) @safe
     {
         // For assert in oauthSession method
         version(assert) () @trusted {
@@ -62,26 +64,18 @@ class OAuthWebapp
             else
                 _sessionCache.remove(req.session.id);
         }
-
-        // TODO: it could be faster to use the result of .get directly
-        if (req.session.isKeySet("oauth.client"))
+        if (auto session =
+            settings ? OAuthSession.load(settings, req.session) : null)
         {
-            string hash = req.session.get!string("oauth.client");
-            auto settings = _settingsMap[hash].get;
+            () @trusted {
+                import std.variant : Variant;
+                req.context["oauth.session"] = cast(Variant) session;
+            } ();
 
-            if (auto session =
-                settings ? OAuthSession.load(settings, req.session) : null)
-            {
-                () @trusted {
-                    import std.variant : Variant;
-                    req.context["oauth.session"] = cast(Variant) session;
-                } ();
+            _sessionCache[req.session.id] =
+                SessionCacheEntry(session, Clock.currTime);
 
-                _sessionCache[req.session.id] =
-                    SessionCacheEntry(session, Clock.currTime);
-
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -118,12 +112,6 @@ class OAuthWebapp
         // redirect from the authentication server
         if (req.session && "code" in req.query && "state" in req.query)
         {
-            import std.digest.digest : toHexString;
-            auto hashString = settings.hash.toHexString();
-
-            if (hashString !in _settingsMap)
-                _settingsMap[hashString] = settings;
-
             auto session = settings.userSession(
                 req.session, req.query["state"], req.query["code"]);
 
