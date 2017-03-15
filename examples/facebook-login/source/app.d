@@ -19,17 +19,17 @@ shared static this()
     });
 
     router.get("/login/facebook", delegate void(scope req, scope res) {
-        webapp.login(req, res, oauthSettings, scopes);
+        webapp.login(req, res, oauthSettings, null, scopes);
         res.redirect("/");
     });
 
     router.any("*", delegate void(scope req, scope res) {
-        if (!webapp.isLoggedIn(req))
-            webapp.login(req, res, oauthSettings, scopes);
+        if (!webapp.isLoggedIn(req, oauthSettings))
+            webapp.login(req, res, oauthSettings, null, scopes);
     });
 
     router.get("/", delegate (req, res) {
-        assert (webapp.isLoggedIn(req));
+        assert (webapp.isLoggedIn(req, oauthSettings));
 
         auto session = webapp.oauthSession(req);
         Json userInfo;
