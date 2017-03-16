@@ -1,7 +1,7 @@
 /++
     OAuth 2.0 client vibe.http.server integration
 
-    Copyright: © 2016 Harry T. Vennik
+    Copyright: © 2016,2017 Harry T. Vennik
     License: Subject to the terms of the MIT license, as written in the included LICENSE file.
     Authors: Harry T. Vennik
   +/

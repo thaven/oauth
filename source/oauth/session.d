@@ -73,8 +73,8 @@ class OAuthSession
         types is required.
 
         If this instance is mutable and the access token has expired and a
-        refresh token is available, a new access token will automatically
-        requested by a call to `refresh`.
+        refresh token is available, a new access token will be requested
+        automatically by a call to `refresh`.
 
         Params:
             req = The request to be authorized
