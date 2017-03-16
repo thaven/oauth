@@ -198,7 +198,6 @@ class OAuthSettings
 
         reqParams["state"] = Base64URLNoPadding.encode(ld.key);
         httpSession.set("oauth.authorization", ld);
-        httpSession.set("oauth.client", toHexString(this.hash));
 
         // generate redirect URI
         URL uri = provider.authUriParsed;
