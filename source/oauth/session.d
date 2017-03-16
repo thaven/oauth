@@ -20,6 +20,7 @@ import std.exception : enforce;
 import std.format : format;
 import std.uni : toLower;
 
+import vibe.core.log;
 import vibe.data.json : Json;
 import vibe.http.client : HTTPClientRequest;
 import vibe.http.session : Session;
@@ -52,6 +53,9 @@ class OAuthSession
 
         enforce!OAuthException(session.signature == data.signature,
             "Failed to load session: signature mismatch.");
+
+        logDebugV("OAuth: Token provided by %s was successfully recovered" ~
+            " from HTTP session.", settings.provider.authUriParsed.host);
 
         return session;
     }
@@ -129,8 +133,7 @@ class OAuthSession
       +/
     bool canRefresh() @property const nothrow
     {
-        try return ("refresh_token" in _tokenData) !is null;
-        catch (Exception) return false;
+        return this.tokenDataForKey!string("refresh_token") !is null;
     }
 
     /++
@@ -165,8 +168,10 @@ class OAuthSession
       +/
     SysTime expires() @property const nothrow
     {
-        try return _timestamp + _tokenData["expires_in"].get!long.seconds;
-        catch (Exception) return SysTime.max;
+        if (auto expIn = this.tokenDataForKey!long("expires_in"))
+            return _timestamp + expIn.seconds;
+        else
+            return SysTime.max;
     }
 
     /++
@@ -262,6 +267,8 @@ class OAuthSession
         if (timestamp == SysTime.init)
         {
             enforce!OAuthException(!isReload, "Timestamp required on reload.");
+
+            logDiagnostic("OAuth: No timestamp available, using current time.");
             timestamp = Clock.currTime;
         }
 
@@ -295,32 +302,19 @@ class OAuthSession
 
     string scopeString() @property const nothrow
     {
-        try
-            if (auto pScope = "scope" in _tokenData)
-                return pScope.get!string;
-        catch (Exception) { }
-
-        return null;
+        return this.tokenDataForKey!string("scope");
     }
 
     string token() @property const nothrow
     {
-        try
-            if (auto pToken = "access_token" in _tokenData)
-                return pToken.get!string;
-        catch (Exception) { }
-
-        return null;
+        return this.tokenDataForKey!string("access_token");
     }
 
     string tokenType() @property const nothrow
     {
-        try
-            if (auto pType = "token_type" in _tokenData)
-                return pType.get!string.toLower();
-        catch (Exception) { }
-
-        return null;
+        auto type = this.tokenDataForKey!string("token_type");
+        try return type.toLower();
+        catch (Exception) return type;
     }
 
     void sign()
@@ -348,12 +342,21 @@ class OAuthSession
 
     string refreshToken() @property const
     {
-        try
-            if (auto pToken = "refresh_token" in _tokenData)
-                return pToken.get!string;
-        catch (Exception) { }
+        auto rfTok = this.tokenDataForKey!string("refresh_token");
+        enforce!OAuthException(rfTok !is null, "No refresh token is available.");
+        return rfTok;
+    }
 
-        throw new OAuthException("No refresh token is available.");
+    T tokenDataForKey(T)(string key, T default_ = T.init) const nothrow
+    {
+        try
+            if (auto pV = key in _tokenData)
+                return pV.get!T;
+        catch (Exception e)
+            logError("OAuth: Exception occurred while reading token metadata:" ~
+                " %s", () @trusted { return e.toString(); } ());
+
+        return default_;
     }
 
     struct SaveData
@@ -380,6 +383,8 @@ class OAuthSession
             return type[0 .. ((idx >= 0) ? idx : $)].strip();
         }
 
+        logDebugV("OAuth: Sending token request");
+
         requestHTTP(
             settings.provider.tokenUri,
             delegate void(scope HTTPClientRequest req) {
@@ -400,7 +405,8 @@ class OAuthSession
                 SysTime httpDate;
                 if (auto pResDate = "Date" in res.headers)
                     try httpDate = parseRFC822DateTime(*pResDate);
-                    catch (DateTimeException) { }
+                    catch (DateTimeException)
+                        logWarn("OAuth: invalid Date header on response.");
 
                 Json atr = res.readJson;
 
@@ -412,6 +418,9 @@ class OAuthSession
                     atr["scope"] = params["scope"];
 
                 this.handleAccessTokenResponse(atr, httpDate);
+
+                logDebugV("OAuth: Successfully obtained token from %s",
+                    settings.provider.authUriParsed.host);
             }
         );
     }
