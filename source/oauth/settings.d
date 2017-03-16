@@ -193,11 +193,11 @@ class OAuthSettings
 
         auto t = Clock.currTime;
         auto rnd = uniform!ulong;
-        auto key = loginKey(t, rnd, scopesJoined);
-        reqParams["state"] = Base64URLNoPadding.encode(key);
+        auto ld = LoginData(t, rnd, scopesJoined,
+            cast(bool) ("redirect_uri" in reqParams));
 
-        httpSession.set("oauth.authorization", LoginData(t, rnd, scopesJoined,
-            cast(bool) ("redirect_uri" in reqParams)));
+        reqParams["state"] = Base64URLNoPadding.encode(ld.key);
+        httpSession.set("oauth.authorization", ld);
         httpSession.set("oauth.client", toHexString(this.hash));
 
         // generate redirect URI
@@ -266,8 +266,7 @@ class OAuthSettings
         auto key = Base64URLNoPadding.decode(state);
         auto ld = httpSession.get!LoginData("oauth.authorization");
 
-        enforce(key == loginKey(ld.timestamp, ld.randomId, ld.scopes),
-            "Invalid state parameter.");
+        enforce!OAuthException(key == ld.key, "Invalid state parameter.");
 
         scope(exit) httpSession.remove("oauth.authorization");
 
@@ -375,19 +374,19 @@ class OAuthSettings
         ulong   randomId;
         string  scopes;
         bool    redirectUriRequired;
-    }
 
-    static loginKey(SysTime t, ulong rnd, in string scopes) @safe
-    {
-        import std.digest.crc : crc32Of;
-        import std.digest.sha : sha256Of;
+        auto key() @property const nothrow @safe
+        {
+            import std.digest.crc : crc32Of;
+            import std.digest.sha : sha256Of;
 
-        ubyte[20] data;
-        ulong[] data64 = cast(ulong[])(data[0 .. 16]);
-        data64[0] = t.toUnixTime;
-        data64[1] = rnd;
-        data[16 .. 20] = crc32Of(scopes);
-        return sha256Of(data[]);
+            ubyte[20] data;
+            ulong[] data64 = cast(ulong[])(data[0 .. 16]);
+            data64[0] = this.timestamp.toUnixTime;
+            data64[1] = this.randomId;
+            data[16 .. 20] = crc32Of(this.scopes);
+            return sha256Of(data[]);
+        }
     }
 }
 
