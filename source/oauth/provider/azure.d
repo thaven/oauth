@@ -39,7 +39,7 @@ void registerAzureAuthProvider(
   +/
 class AzureAuthSettings : OAuthSettings
 {
-    string domainHint;
+    private string _domainHint;
 
     /++
         See OAuthSettings constructor for common documentation.
@@ -47,14 +47,14 @@ class AzureAuthSettings : OAuthSettings
         If the 'provider' field is omitted, "azure" will be assumed. If it is
         included, it MUST be set to the name of an AzureAuthProvider.
 
-        Additionally, this constructor supports the following JSON key:
-        $(TABLE
-            $(TR $(TH Key) $(TH Type) $(TH Description))
-            $(TR $(TD domainHint) $(TD string) $(TD Provides a hint about the
-                tenant or domain that the user should use to sign in. The value
-                of the domainHint is a registered domain for the tenant. If the
-                tenant is federated to an on-premises directory, Azure AD
-                redirects to the specified tenant federation server.)))
+        History:
+            v0.1.x supported an extra JSON key 'domainHint', which corresponds
+                to the domain_hint parameter in the authorization redirect.
+
+            v0.2.0 adds support in OAuthSettings.userAuthUri for passing extra
+                parameters to the authorization endpoint. This is now the
+                preferred way to pass the domain_hint parameter when needed.
+                Using the JSON key is deprecated.
       +/
     this(in Json config) immutable
     {
@@ -77,7 +77,7 @@ class AzureAuthSettings : OAuthSettings
             config["redirectUri"].get!string);
 
         if (auto pjDomainHint = "domainHint" in config)
-            this.domainHint = pjDomainHint.get!string;
+            this._domainHint = pjDomainHint.get!string;
     }
 }
 
@@ -105,8 +105,8 @@ class AzureAuthProvider : OAuthProvider
 
         if (auto azureSettings = cast(immutable AzureAuthSettings) settings)
         {
-            if ("domain_hint" !in params && azureSettings.domainHint)
-                params["domain_hint"] = azureSettings.domainHint;
+            if ("domain_hint" !in params && azureSettings._domainHint)
+                params["domain_hint"] = azureSettings._domainHint;
         }
     }
 

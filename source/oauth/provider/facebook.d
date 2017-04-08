@@ -19,12 +19,11 @@ import std.exception;
 /++
     Settings for 'facebook' provider.
 
-    You can just use the OAuthSettings class if you do not need any facebook-
-    specific settings.
+    OAuthSettings specialized for Facebook. Just for convenience.
   +/
 class FacebookAuthSettings : OAuthSettings
 {
-    bool rerequest;
+    private bool _rerequest;
 
     /++
         See OAuthSettings constructor for common documentation.
@@ -32,12 +31,14 @@ class FacebookAuthSettings : OAuthSettings
         The 'provider' field may be omitted. If it is included, it MUST be set
         to "facebook".
 
-        Additionally, this constructor supports the following JSON key:
-        $(TABLE
-            $(TR $(TH Key) $(TH Type) $(TH Description))
-            $(TR $(TD authType) $(TD string) $(TD If set to "rerequest",
-                force Facebook to ask te user again for permissions that
-                were previously denied by the user.)))
+        History:
+            v0.1.x supported an extra JSON key 'authType', which corresponds
+                to the auth_type parameter in the authorization redirect.
+
+            v0.2.0 adds support in OAuthSettings.userAuthUri for passing extra
+                parameters to the authorization endpoint. This is now the
+                preferred way to pass the auth_type parameter when needed.
+                Using the JSON key is deprecated.
       +/
     this(in Json config) immutable
     {
@@ -53,14 +54,7 @@ class FacebookAuthSettings : OAuthSettings
 
         if (config["authType"].type == Json.Type.string
             && config["authType"].get!string == "rerequest")
-            rerequest = true;
-
-        // Also allow for the key to be written as auth_type for compatibility
-        // with release 0.1.0.
-        // TODO: remove deprecated JSON key for facebook: auth_type
-        else if (config["auth_type"].type == Json.Type.string
-            && config["auth_type"].get!string == "rerequest")
-            rerequest = true;
+            _rerequest = true;
     }
 }
 
@@ -93,7 +87,7 @@ class FacebookAuthProvider : OAuthProvider
         params["redirect_uri"] = settings.redirectUri;
 
         if (auto fbSettings = cast(immutable FacebookAuthSettings) settings)
-            if ("auth_type" !in params && fbSettings.rerequest)
+            if ("auth_type" !in params && fbSettings._rerequest)
                 params["auth_type"] = "rerequest";
     }
 
