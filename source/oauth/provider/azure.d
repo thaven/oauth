@@ -91,8 +91,14 @@ class AzureAuthProvider : OAuthProvider
 {
     private this(string tenantId) immutable
     {
+        Options azureOptions;
+        azureOptions.explicitRedirectUri = true;
+        azureOptions.clientAuthParams = true;
+
         auto baseUrl = "https://login.microsoftonline.com/" ~ tenantId;
-        super(baseUrl ~ "/oauth2/authorize", baseUrl ~ "/oauth2/token");
+        super(baseUrl ~ "/oauth2/authorize",
+            baseUrl ~ "/oauth2/token",
+            azureOptions);
     }
 
     override
@@ -100,7 +106,6 @@ class AzureAuthProvider : OAuthProvider
         immutable OAuthSettings settings,
         string[string] params) const
     {
-        params["redirect_uri"] = settings.redirectUri;
         params["response_mode"] = "query";
 
         if (auto azureSettings = cast(immutable AzureAuthSettings) settings)
@@ -108,16 +113,5 @@ class AzureAuthProvider : OAuthProvider
             if ("domain_hint" !in params && azureSettings._domainHint)
                 params["domain_hint"] = azureSettings._domainHint;
         }
-    }
-
-    override
-    void tokenRequestor(
-        in OAuthSettings settings,
-        string[string] params,
-        scope HTTPClientRequest req) const
-    {
-        params["client_id"] = settings.clientId;
-        params["client_secret"] = settings.clientSecret;
-        req.requestURL = req.requestURL ~ '?' ~ formEncode(params);
     }
 }

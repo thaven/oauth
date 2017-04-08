@@ -389,7 +389,31 @@ class OAuthSession
             settings.provider.tokenUri,
             delegate void(scope HTTPClientRequest req) {
                 req.headers["Accept"] = "application/json";
-                settings.provider.tokenRequestor(this.settings, params, req);
+
+                auto options = settings.provider.options;
+
+                if (options.clientAuthParams)
+                {
+                    params["client_id"] = settings.clientId;
+                    params["client_secret"] = settings.clientSecret;
+                }
+                else
+                {
+                    import vibe.http.auth.basic_auth : addBasicAuth;
+                    addBasicAuth(req, settings.clientId, settings.clientSecret);
+                }
+
+                import vibe.inet.webform : formEncode;
+
+                if (options.tokenRequestHttpGet)
+                    req.requestURL = req.requestURL ~ '?' ~ params.formEncode();
+                else
+                {
+                    import vibe.http.common : HTTPMethod;
+                    req.method = HTTPMethod.POST;
+                    req.contentType = "application/x-www-form-urlencoded";
+                    req.bodyWriter.write(params.formEncode());
+                }
             },
             delegate void(scope HTTPClientResponse res) {
                 import std.datetime : DateTimeException, parseRFC822DateTime;

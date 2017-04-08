@@ -181,9 +181,13 @@ class OAuthSettings
         foreach (k, v; extraParams)
             reqParams[k] = v;
 
-        // the oAuth server returns a code with which a token can be requested
+        // Request an authorization code from the OAuth server. Subsequently,
+        // the authorization code may be exchanged for an access token.
         reqParams["response_type"] = "code";
         reqParams["client_id"] = clientId;
+
+        if (provider.options.explicitRedirectUri)
+            reqParams["redirect_uri"] = redirectUri;
 
         string scopesJoined = join(scopes, ' ');
         if (scopesJoined)
@@ -199,7 +203,7 @@ class OAuthSettings
         reqParams["state"] = Base64URLNoPadding.encode(ld.key);
         httpSession.set("oauth.authorization", ld);
 
-        // generate redirect URI
+        // Generate authorization redirect URI
         URL uri = provider.authUriParsed;
         Appender!string app;
         if (uri.queryString.length)

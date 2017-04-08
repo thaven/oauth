@@ -73,9 +73,15 @@ class FacebookAuthProvider : OAuthProvider
 
     private this() immutable
     {
+        Options facebookOptions;
+        facebookOptions.explicitRedirectUri = true;
+        facebookOptions.tokenRequestHttpGet = true;
+        facebookOptions.clientAuthParams = true;
+
         super(
             "https://www.facebook.com/dialog/oauth",
-            "https://graph.facebook.com/v2.3/oauth/access_token"
+            "https://graph.facebook.com/v2.3/oauth/access_token",
+            facebookOptions
         );
     }
 
@@ -84,22 +90,9 @@ class FacebookAuthProvider : OAuthProvider
         immutable OAuthSettings settings,
         string[string] params) const
     {
-        params["redirect_uri"] = settings.redirectUri;
-
         if (auto fbSettings = cast(immutable FacebookAuthSettings) settings)
             if ("auth_type" !in params && fbSettings._rerequest)
                 params["auth_type"] = "rerequest";
-    }
-
-    override
-    void tokenRequestor(
-        in OAuthSettings settings,
-        string[string] params,
-        scope HTTPClientRequest req) const
-    {
-        params["client_id"] = settings.clientId;
-        params["client_secret"] = settings.clientSecret;
-        req.requestURL = req.requestURL ~ '?' ~ formEncode(params);
     }
 }
 

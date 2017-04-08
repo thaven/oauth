@@ -17,9 +17,14 @@ import std.exception : enforce;
 
 shared static this()
 {
+    OAuthProvider.Options googleOptions;
+    googleOptions.explicitRedirectUri = true;
+    googleOptions.clientAuthParams = true;
+
     OAuthProvider.register("google", new immutable(OAuthProvider)(
         "https://accounts.google.com/o/oauth2/auth",
-        "https://accounts.google.com/o/oauth2/token"
+        "https://accounts.google.com/o/oauth2/token",
+        googleOptions
     ));
 }
 

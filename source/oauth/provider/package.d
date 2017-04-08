@@ -9,12 +9,11 @@
   +/
 module oauth.provider;
 
-import vibe.data.json : Json;
-import vibe.inet.url;
-import vibe.http.client : HTTPClientRequest;
-
 import oauth.session : OAuthSession;
 import oauth.settings : OAuthSettings;
+
+import vibe.data.json : Json;
+import vibe.inet.url;
 
 /++
     Represents an OAuth 2.0 authentication server.
@@ -32,6 +31,28 @@ class OAuthProvider
         __gshared bool allowAutoRegister = true;
 
         URL _authUriParsed;
+        Options _options;
+    }
+
+    /++
+        Bitfield holding options for an OAuth provider.
+
+        Fields:
+            explicitRedirectUri = redirect_uri parameter is required in
+                authorization redirect.
+            tokenRequestHttpGet = use the GET http method when requesting an
+                access token.
+            clientAuthParams = pass client credentials as parameters rather
+                than using http Basic authentication.
+      +/
+    struct Options {
+        import std.bitmanip : bitfields;
+
+        mixin(bitfields!(
+            bool, "explicitRedirectUri", 1,
+            bool, "tokenRequestHttpGet", 1,
+            bool, "clientAuthParams", 1,
+            ubyte, "", 5));
     }
 
     /++
@@ -99,11 +120,18 @@ class OAuthProvider
         Params:
             authUri = Authorization URI for this provider.
             tokenUri = Token URI for this provider.
+            options = Many OAuth 2.0 servers do not follow the standard exactly.
+                Use the options to specify what non-standard behavior is to be
+                expected from this provider. Default: none
       +/
-    this(string authUri, string tokenUri) immutable @safe
+    this(
+        string authUri,
+        string tokenUri,
+        Options options = Options.init) immutable @safe
     {
         this.authUri = authUri;
         this.tokenUri = tokenUri;
+        this._options = options;
 
         this._authUriParsed = URL(authUri);
     }
@@ -115,21 +143,6 @@ class OAuthProvider
     {
     }
 
-    void tokenRequestor(
-        in OAuthSettings settings,
-        string[string] params,
-        scope HTTPClientRequest req) const
-    {
-        import vibe.http.common : HTTPMethod;
-        import vibe.inet.webform : formEncode;
-        import vibe.http.auth.basic_auth : addBasicAuth;
-
-        req.method = HTTPMethod.POST;
-        addBasicAuth(req, settings.clientId, settings.clientSecret);
-        req.contentType = "application/x-www-form-urlencoded";
-        req.bodyWriter.write(formEncode(params));
-    }
-
     package(oauth):
 
     URL authUriParsed() @property pure const nothrow @safe
@@ -137,10 +150,43 @@ class OAuthProvider
         return _authUriParsed;
     }
 
+    Options options() @property pure const nothrow @safe
+    {
+        return _options;
+    }
+
     this(in Json json) immutable @trusted
     {
+        Options opt;
+
+        if (auto pJOpt = "options" in json)
+        {
+            foreach (v; *pJOpt)
+            {
+                switch (v.get!string)
+                {
+                    case "explicitRedirectUri":
+                        opt.explicitRedirectUri = true;
+                        break;
+
+                    case "tokenRequestHttpGet":
+                        opt.tokenRequestHttpGet = true;
+                        break;
+
+                    case "clientAuthParams":
+                        opt.clientAuthParams = true;
+                        break;
+
+                    default:
+                        import std.format : format;
+                        throw new Exception(format(
+                            "Invalid provider option %s", v.get!string));
+                }
+            }
+        }
+
         this(json["authUri"].get!string,
-            json["tokenUri"].get!string);
+            json["tokenUri"].get!string, opt);
 
         if (OAuthProvider.allowAutoRegister && "name" in json)
             OAuthProvider.register(json["name"].get!string, this);
