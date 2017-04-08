@@ -82,7 +82,7 @@ class OAuthWebapp
         scope HTTPServerRequest req,
         scope HTTPServerResponse res,
         immutable OAuthSettings settings,
-        in string[string] extraParams = null,
+        in string[string] extraParams,
         in string[] scopes = null) @safe
     {
         // redirect from the authentication server
@@ -104,6 +104,16 @@ class OAuthWebapp
 
             res.redirect(settings.userAuthUri(req.session, extraParams, scopes));
         }
+    }
+
+    /// ditto
+    void login(
+        scope HTTPServerRequest req,
+        scope HTTPServerResponse res,
+        immutable OAuthSettings settings,
+        in string[] scopes) @safe
+    {
+        login(req, res, settings, null, scopes);
     }
 
     /++
