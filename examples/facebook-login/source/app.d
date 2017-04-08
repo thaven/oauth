@@ -19,7 +19,7 @@ shared static this()
     });
 
     router.get("/login/facebook", delegate void(scope req, scope res) {
-        webapp.login(req, res, oauthSettings, null, scopes);
+        webapp.login(req, res, oauthSettings, scopes);
         res.redirect("/");
     });
 
