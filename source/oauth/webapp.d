@@ -135,7 +135,12 @@ class OAuthWebapp
         try
             if (auto pCM = "oauth.session" in req.context)
                 return pCM.get!OAuthSession;
-        catch (Exception) { }
+        catch (Exception e)
+        {
+            import vibe.core.log : logError;
+            logError("OAuth: Exception occurred while reading request " ~
+                "context: %s", e.toString());
+        }
 
         return null;
     }
