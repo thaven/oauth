@@ -1,5 +1,5 @@
 /++
-    OAuth 2.0 client vibe.http.server integration
+    OAuth 2.0 client `vibe.http.server` / `vibe.web.web` integration
 
     Copyright: © 2016,2017 Harry T. Vennik
     License: Subject to the terms of the MIT license, as written in the included LICENSE file.
@@ -9,7 +9,9 @@ module oauth.webapp;
 
 import oauth.settings : OAuthSettings;
 import oauth.session : OAuthSession;
+
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
+import vibe.web.web : noRoute;
 
 import std.datetime : Clock, SysTime;
 
@@ -30,6 +32,7 @@ class OAuthWebapp
 
         Returns: `true` if this request is from a logged in user.
       +/
+    @noRoute
     bool isLoggedIn(
         scope HTTPServerRequest req,
         immutable OAuthSettings settings) @safe
@@ -78,6 +81,7 @@ class OAuthWebapp
             scopes = (Optional) An array of identifiers specifying the scope of
                 the authorization requested.
       +/
+    @noRoute
     void login(
         scope HTTPServerRequest req,
         scope HTTPServerResponse res,
@@ -107,6 +111,7 @@ class OAuthWebapp
     }
 
     /// ditto
+    @noRoute
     void login(
         scope HTTPServerRequest req,
         scope HTTPServerResponse res,
@@ -131,6 +136,7 @@ class OAuthWebapp
         Returns: The session associated to req, or `null` if no
             session was found.
       +/
+    @noRoute
     final
     OAuthSession oauthSession(scope HTTPServerRequest req) nothrow @trusted
     in

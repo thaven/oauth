@@ -11,6 +11,7 @@
   "dependencies" : {
     "vibe-d:core" : "~>0.8.0-beta.4",
     "vibe-d:data" : "*",
-    "vibe-d:http" : "*"
+    "vibe-d:http" : "*",
+    "vibe-d:web" : "*"
   }
 }
