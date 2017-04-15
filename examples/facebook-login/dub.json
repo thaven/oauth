@@ -6,7 +6,8 @@
     },
     "vibe-d:http" : "*",
     "vibe-d:core" : "*",
-    "vibe-d:data" : "*"
+    "vibe-d:data" : "*",
+    "vibe-d:web" : "*"
   },
   "versions" : [
     "VibeDefaultMain"

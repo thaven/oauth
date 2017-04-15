@@ -1,76 +1,102 @@
+import vibe.http.server;
+import vibe.web.auth;
+import vibe.web.web;
+
 import oauth.webapp;
 
-shared static this()
+struct AuthInfo { }
+
+@requiresAuth
+class FacebookLoginExample : OAuthWebapp
 {
-    auto oauthSettings = () {
+    private
+    {
+        import oauth.settings : OAuthSettings;
+
+        static immutable OAuthSettings _oauthSettings;
+        static immutable _scopes = [ "email" ];
+    }
+
+    shared static this()
+    {
         import vibe.core.file : readFileUTF8;
         import vibe.data.json : parseJsonString;
         import oauth.provider.facebook : FacebookAuthSettings;
 
-        return new immutable(FacebookAuthSettings)(
+        _oauthSettings = new immutable(FacebookAuthSettings)(
             "facebook.json".readFileUTF8.parseJsonString());
-    } ();
+    }
 
-    auto webapp = new OAuthWebapp;
-    string[] scopes = [ "email" ];
-
-    auto router = () {
-        import vibe.http.router : URLRouter;
-        import vibe.http.server : render;
-
-        auto router = new URLRouter;
-
-        router.get("/logout", delegate void(scope req, scope res) {
-            res.terminateSession();
-            res.render!("logout.dt", req);
-        });
-
-        router.get("/login/facebook", delegate void(scope req, scope res) {
-            webapp.login(req, res, oauthSettings, scopes);
-            res.redirect("/");
-        });
-
-        router.any("*", delegate void(scope req, scope res) {
-            if (!webapp.isLoggedIn(req, oauthSettings))
-                webapp.login(req, res, oauthSettings, null, scopes);
-        });
-
-        router.get("/", delegate (req, res) {
-            import vibe.http.client : requestHTTP;
-            import vibe.data.json : Json;
-
-            assert (webapp.isLoggedIn(req, oauthSettings));
-
-            auto session = webapp.oauthSession(req);
-            Json userInfo;
-
-            requestHTTP(
-                "https://graph.facebook.com/me?fields=email,first_name,last_name",
-                delegate (scope graphReq) {
-                    session.authorizeRequest(graphReq);
-                },
-                delegate (scope graphRes) {
-                    auto obj = graphRes.readJson();
-                    if ("error" !in obj)
-                        userInfo = obj;
-                }
-            );
-
-            res.render!("index.dt", userInfo);
-        });
-
-        return router;
-    } ();
-
+    @noRoute
+    @safe
+    AuthInfo authenticate(
+        scope HTTPServerRequest req,
+        scope HTTPServerResponse res)
     {
-        import vibe.http.server : HTTPServerSettings, listenHTTP;
-        import vibe.http.session : MemorySessionStore;
+        if (!isLoggedIn(req, _oauthSettings))
+            login(req, res, _oauthSettings, _scopes);
 
-        auto settings = new HTTPServerSettings;
-        settings.sessionStore = new MemorySessionStore;
-        settings.port = 8080;
+        return AuthInfo();
+    }
 
-        listenHTTP(settings, router);
+    @path("/")
+    @anyAuth
+    void getIndex(scope HTTPServerRequest req)
+    {
+        import vibe.http.client : requestHTTP;
+        import vibe.data.json : Json;
+
+        auto session = this.oauthSession(req);
+        assert (session, "No session: authenticate() not called??");
+
+        Json userInfo;
+
+        requestHTTP(
+            "https://graph.facebook.com/me?fields=email,first_name,last_name",
+            delegate (scope graphReq) {
+                session.authorizeRequest(graphReq);
+            },
+            delegate (scope graphRes) {
+                auto obj = graphRes.readJson();
+                if ("error" !in obj)
+                    userInfo = obj;
+            }
+        );
+
+        render!("index.dt", userInfo);
+    }
+
+    @path("/login/facebook")
+    @noAuth
+    void getLoginFacebook(
+        scope HTTPServerRequest req,
+        scope HTTPServerResponse res)
+    {
+        login(req, res, _oauthSettings, _scopes);
+
+        if (!res.headerWritten)
+            res.redirect("/");
+    }
+
+    @anyAuth
+    void getLogout()
+    {
+        terminateSession();
+        render!("logout.dt");
     }
 }
 
+shared static this()
+{
+    import vibe.http.router : URLRouter;
+    import vibe.http.session : MemorySessionStore;
+
+    auto router = new URLRouter;
+    router.registerWebInterface(new FacebookLoginExample);
+
+    auto settings = new HTTPServerSettings;
+    settings.sessionStore = new MemorySessionStore;
+    settings.port = 8080;
+
+    listenHTTP(settings, router);
+}
