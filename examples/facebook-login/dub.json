@@ -1,8 +1,12 @@
 ﻿{
   "name" : "facebook-login-example",
   "dependencies" : {
-    "vibe-d" : "~>0.7.29",
-    "oauth" : { "path" : "../../" }
+    "oauth" : {
+      "path" : "..\/..\/"
+    },
+    "vibe-d:http" : "*",
+    "vibe-d:core" : "*",
+    "vibe-d:data" : "*"
   },
   "versions" : [
     "VibeDefaultMain"
