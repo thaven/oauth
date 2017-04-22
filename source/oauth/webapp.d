@@ -11,7 +11,12 @@ import oauth.settings : OAuthSettings;
 import oauth.session : OAuthSession;
 
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
-import vibe.web.web : noRoute;
+
+version (Have_vibe_d_web) {
+    import vibe.web.web : noRoute;
+} else {
+    private struct noRoute; // Fake UDA
+}
 
 import std.datetime : Clock, SysTime;
 
