@@ -14,8 +14,6 @@ import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 
 version (Have_vibe_d_web) {
     import vibe.web.web : noRoute;
-} else {
-    private struct noRoute; // Fake UDA
 }
 
 import std.datetime : Clock, SysTime;
@@ -25,6 +23,8 @@ import std.datetime : Clock, SysTime;
   +/
 class OAuthWebapp
 {
+    version (Have_vibe_d_web) @noRoute:
+
     /++
         Check if a request is from a logged in user
 
@@ -37,7 +37,6 @@ class OAuthWebapp
 
         Returns: `true` if this request is from a logged in user.
       +/
-    @noRoute
     bool isLoggedIn(
         scope HTTPServerRequest req,
         immutable OAuthSettings settings) @safe
@@ -86,7 +85,6 @@ class OAuthWebapp
             scopes = (Optional) An array of identifiers specifying the scope of
                 the authorization requested.
       +/
-    @noRoute
     void login(
         scope HTTPServerRequest req,
         scope HTTPServerResponse res,
@@ -116,7 +114,6 @@ class OAuthWebapp
     }
 
     /// ditto
-    @noRoute
     void login(
         scope HTTPServerRequest req,
         scope HTTPServerResponse res,
@@ -141,7 +138,6 @@ class OAuthWebapp
         Returns: The session associated to req, or `null` if no
             session was found.
       +/
-    @noRoute
     final
     OAuthSession oauthSession(scope HTTPServerRequest req) nothrow @trusted
     in
