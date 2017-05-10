@@ -35,24 +35,18 @@ class OAuthProvider
     }
 
     /++
-        Bitfield holding options for an OAuth provider.
-
-        Fields:
-            explicitRedirectUri = redirect_uri parameter is required in
-                authorization redirect.
-            tokenRequestHttpGet = use the GET http method when requesting an
-                access token.
-            clientAuthParams = pass client credentials as parameters rather
-                than using http Basic authentication.
+        Options for an OAuth provider.
       +/
-    struct Options {
-        import std.bitmanip : bitfields;
-
-        mixin(bitfields!(
-            bool, "explicitRedirectUri", 1,
-            bool, "tokenRequestHttpGet", 1,
-            bool, "clientAuthParams", 1,
-            ubyte, "", 5));
+    enum Options
+    {
+        none                = 0,
+        explicitRedirectUri = 0x01, /// redirect_uri parameter is required in
+                                    ///     authorization redirect.
+        tokenRequestHttpGet = 0x02, /// use the GET http method when requesting
+                                    ///     an access token.
+        clientAuthParams    = 0x04  /// pass client credentials as parameters
+                                    ///     rather than using http Basic
+                                    ///     authentication.
     }
 
     /++
@@ -166,15 +160,15 @@ class OAuthProvider
                 switch (v.get!string)
                 {
                     case "explicitRedirectUri":
-                        opt.explicitRedirectUri = true;
+                        opt |= Options.explicitRedirectUri;
                         break;
 
                     case "tokenRequestHttpGet":
-                        opt.tokenRequestHttpGet = true;
+                        opt |= Options.tokenRequestHttpGet;
                         break;
 
                     case "clientAuthParams":
-                        opt.clientAuthParams = true;
+                        opt |= Options.clientAuthParams;
                         break;
 
                     default:

@@ -73,15 +73,12 @@ class FacebookAuthProvider : OAuthProvider
 
     private this() immutable
     {
-        Options facebookOptions;
-        facebookOptions.explicitRedirectUri = true;
-        facebookOptions.tokenRequestHttpGet = true;
-        facebookOptions.clientAuthParams = true;
-
         super(
             "https://www.facebook.com/dialog/oauth",
             "https://graph.facebook.com/v2.3/oauth/access_token",
-            facebookOptions
+            Options.explicitRedirectUri
+                | Options.tokenRequestHttpGet
+                | Options.clientAuthParams
         );
     }
 

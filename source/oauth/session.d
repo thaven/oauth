@@ -391,8 +391,9 @@ class OAuthSession
                 req.headers["Accept"] = "application/json";
 
                 auto options = settings.provider.options;
+                alias typeof(options) Options;
 
-                if (options.clientAuthParams)
+                if (options & Options.clientAuthParams)
                 {
                     params["client_id"] = settings.clientId;
                     params["client_secret"] = settings.clientSecret;
@@ -405,7 +406,7 @@ class OAuthSession
 
                 import vibe.inet.webform : formEncode;
 
-                if (options.tokenRequestHttpGet)
+                if (options & Options.tokenRequestHttpGet)
                     req.requestURL = req.requestURL ~ '?' ~ params.formEncode();
                 else
                 {

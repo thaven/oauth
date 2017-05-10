@@ -91,14 +91,10 @@ class AzureAuthProvider : OAuthProvider
 {
     private this(string tenantId) immutable
     {
-        Options azureOptions;
-        azureOptions.explicitRedirectUri = true;
-        azureOptions.clientAuthParams = true;
-
         auto baseUrl = "https://login.microsoftonline.com/" ~ tenantId;
         super(baseUrl ~ "/oauth2/authorize",
             baseUrl ~ "/oauth2/token",
-            azureOptions);
+            Options.explicitRedirectUri | Options.clientAuthParams);
     }
 
     override

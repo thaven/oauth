@@ -186,7 +186,7 @@ class OAuthSettings
         reqParams["response_type"] = "code";
         reqParams["client_id"] = clientId;
 
-        if (provider.options.explicitRedirectUri)
+        if (provider.options & OAuthProvider.Options.explicitRedirectUri)
             reqParams["redirect_uri"] = redirectUri;
 
         string scopesJoined = join(scopes, ' ');
