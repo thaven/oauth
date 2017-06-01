@@ -114,7 +114,7 @@ class OAuthSettings
         this.redirectUri = redirectUri;
 
         import std.digest.sha : sha256Of;
-        this.hash = sha256Of(provider.tokenUri ~ ' ' ~ clientId);
+        this.hash = sha256Of(provider.tokenUri ~ ' ' ~ clientId).idup;
     }
 
     /++
