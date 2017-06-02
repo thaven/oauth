@@ -43,8 +43,7 @@ class OAuthWebapp
     {
         // For assert in oauthSession method
         version(assert) () @trusted {
-            import std.variant : Variant;
-            req.context["oauth.debug.login.checked"] = cast(Variant) true;
+            req.context["oauth.debug.login.checked"] = true;
         } ();
 
         if (!req.session)
@@ -54,8 +53,7 @@ class OAuthWebapp
             settings ? OAuthSession.load(settings, req.session) : null)
         {
             () @trusted {
-                import std.variant : Variant;
-                req.context["oauth.session"] = cast(Variant) session;
+                req.context["oauth.session"] = session;
             } ();
 
             return true;
@@ -97,8 +95,7 @@ class OAuthWebapp
         {
             // For assert in oauthSession method
             version(assert) () @trusted {
-                import std.variant : Variant;
-                req.context["oauth.debug.login.checked"] = cast(Variant) true;
+                req.context["oauth.debug.login.checked"] = true;
             } ();
 
             auto session = settings.userSession(
@@ -143,7 +140,7 @@ class OAuthWebapp
     in
     {
         try
-            assert (req.context.get("oauth.debug.login.checked").get!bool);
+            assert (req.context.get!bool("oauth.debug.login.checked"));
         catch (Exception)
             assert(false);
     }
