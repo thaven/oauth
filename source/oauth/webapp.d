@@ -25,6 +25,19 @@ class OAuthWebapp
 {
     version (Have_vibe_d_web) @noRoute:
 
+    private OAuthSession loadSessionToContext(scope HTTPServerRequest req, immutable OAuthSettings settings) @safe
+    in {
+        assert(settings !is null, "Settings can't be null");
+    }
+    body
+    {
+        auto session = OAuthSession.load(settings, req.session);
+        () @trusted {
+            req.context["oauth.session"] = session;
+        } ();
+        return session;
+    }
+
     /++
         Check if a request is from a logged in user
 
@@ -49,13 +62,9 @@ class OAuthWebapp
         if (!req.session)
             return false;
 
-        if (auto session =
-            settings ? OAuthSession.load(settings, req.session) : null)
+        if (settings !is null)
         {
-            () @trusted {
-                req.context["oauth.session"] = session;
-            } ();
-
+            loadSessionToContext(req, settings);
             return true;
         }
 
@@ -137,12 +146,13 @@ class OAuthWebapp
 
         Params:
             req = the request to get the relevant session for
+            settings = The OAuth settings that apply to this _login attempt
 
         Returns: The session associated to req, or `null` if no
             session was found.
       +/
     final
-    OAuthSession oauthSession(scope HTTPServerRequest req) nothrow @trusted
+    OAuthSession oauthSession(scope HTTPServerRequest req, immutable OAuthSettings settings = null) nothrow @trusted
     in
     {
         try
@@ -153,15 +163,18 @@ class OAuthWebapp
     body
     {
         try
+        {
             if (auto pCM = "oauth.session" in req.context)
                 return pCM.get!OAuthSession;
+            else
+                return loadSessionToContext(req, settings);
+        }
         catch (Exception e)
         {
             import vibe.core.log : logError;
             logError("OAuth: Exception occurred while reading request " ~
                 "context: %s", e.toString());
         }
-
         return null;
     }
 }
