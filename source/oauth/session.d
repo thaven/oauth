@@ -154,10 +154,9 @@ class OAuthSession
     /++
         Returns: `true` if this session's access token has _expired
       +/
-    final
-    bool expired() @property const
+    final bool expired() @property const
     {
-        return (Clock.currTime > this.expires);
+        return Clock.currTime > this.expires;
     }
 
     /++
