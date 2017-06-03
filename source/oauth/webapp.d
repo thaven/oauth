@@ -82,8 +82,11 @@ class OAuthWebapp
             settings = The OAuth settings that apply to this _login attempt
             scopes = (Optional) An array of identifiers specifying the scope of
                 the authorization requested.
+        Returns: `true` if a OAuth session was obtained and
+                 `false` if no OAuth session is present and a redirect to an
+                  OAuth provider will happen.
       +/
-    void login(
+    bool login(
         scope HTTPServerRequest req,
         scope HTTPServerResponse res,
         immutable OAuthSettings settings,
@@ -100,6 +103,8 @@ class OAuthWebapp
 
             auto session = settings.userSession(
                 req.session, req.query["state"], req.query["code"]);
+
+            return true;
         }
         else
         {
@@ -107,17 +112,18 @@ class OAuthWebapp
                 req.session = res.startSession();
 
             res.redirect(settings.userAuthUri(req.session, extraParams, scopes));
+            return false;
         }
     }
 
     /// ditto
-    void login(
+    bool login(
         scope HTTPServerRequest req,
         scope HTTPServerResponse res,
         immutable OAuthSettings settings,
         in string[] scopes) @safe
     {
-        login(req, res, settings, null, scopes);
+        return login(req, res, settings, null, scopes);
     }
 
     /++
