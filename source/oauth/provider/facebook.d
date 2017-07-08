@@ -73,12 +73,15 @@ class FacebookAuthProvider : OAuthProvider
 
     private this() immutable
     {
+        import std.typecons : BitFlags;
         super(
             "https://www.facebook.com/dialog/oauth",
             "https://graph.facebook.com/v2.3/oauth/access_token",
-            Options.explicitRedirectUri
-                | Options.tokenRequestHttpGet
-                | Options.clientAuthParams
+            BitFlags!Option (
+                Option.explicitRedirectUri |
+                Option.tokenRequestHttpGet |
+                Option.clientAuthParams
+            )
         );
     }
 

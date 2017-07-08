@@ -22,7 +22,7 @@ class OAuthProvider
 {
     private
     {
-        import std.typecons : Rebindable;
+        import std.typecons : Rebindable, BitFlags;
 
         /* Exclusively accessed by forName() and register(), synchronized. */
         __gshared Rebindable!(immutable OAuthProvider)[string] _servers;
@@ -31,13 +31,13 @@ class OAuthProvider
         __gshared bool allowAutoRegister = true;
 
         URL _authUriParsed;
-        Options _options;
+        BitFlags!Option _options;
     }
 
     /++
-        Options for an OAuth provider.
+        Option flags for an OAuth provider.
       +/
-    enum Options
+    enum Option
     {
         none                = 0,
         explicitRedirectUri = 0x01, /// redirect_uri parameter is required in
@@ -121,7 +121,7 @@ class OAuthProvider
     this(
         string authUri,
         string tokenUri,
-        Options options = Options.init) immutable @safe
+        BitFlags!Option options = BitFlags!Option.init) immutable @safe
     {
         this.authUri = authUri;
         this.tokenUri = tokenUri;
@@ -144,14 +144,14 @@ class OAuthProvider
         return _authUriParsed;
     }
 
-    Options options() @property pure const nothrow @safe
+    BitFlags!Option options() @property pure const nothrow @safe
     {
         return _options;
     }
 
     this(in Json json) immutable @trusted
     {
-        Options opt;
+        BitFlags!Option opt;
 
         if (auto pJOpt = "options" in json)
         {
@@ -160,15 +160,15 @@ class OAuthProvider
                 switch (v.get!string)
                 {
                     case "explicitRedirectUri":
-                        opt |= Options.explicitRedirectUri;
+                        opt |= Option.explicitRedirectUri;
                         break;
 
                     case "tokenRequestHttpGet":
-                        opt |= Options.tokenRequestHttpGet;
+                        opt |= Option.tokenRequestHttpGet;
                         break;
 
                     case "clientAuthParams":
-                        opt |= Options.clientAuthParams;
+                        opt |= Option.clientAuthParams;
                         break;
 
                     default:

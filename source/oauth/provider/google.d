@@ -17,12 +17,16 @@ import std.exception : enforce;
 
 shared static this()
 {
-    alias OAuthProvider.Options Options;
+    import std.typecons : BitFlags;
+    alias OAuthProvider.Option Option;
 
     OAuthProvider.register("google", new immutable(OAuthProvider)(
         "https://accounts.google.com/o/oauth2/auth",
         "https://accounts.google.com/o/oauth2/token",
-        Options.explicitRedirectUri | Options.clientAuthParams
+        BitFlags!Option(
+            Option.explicitRedirectUri |
+            Option.clientAuthParams
+        )
     ));
 }
 

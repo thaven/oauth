@@ -388,12 +388,14 @@ class OAuthSession
         requestHTTP(
             settings.provider.tokenUri,
             delegate void(scope HTTPClientRequest req) {
+                import oauth.provider : OAuthProvider;
+
                 req.headers["Accept"] = "application/json";
 
                 auto options = settings.provider.options;
-                alias typeof(options) Options;
+                alias OAuthProvider.Option Option;
 
-                if (options & Options.clientAuthParams)
+                if (options & Option.clientAuthParams)
                 {
                     params["client_id"] = settings.clientId;
                     params["client_secret"] = settings.clientSecret;
@@ -406,7 +408,7 @@ class OAuthSession
 
                 import vibe.inet.webform : formEncode;
 
-                if (options & Options.tokenRequestHttpGet)
+                if (options & Option.tokenRequestHttpGet)
                     req.requestURL = req.requestURL ~ '?' ~ params.formEncode();
                 else
                 {

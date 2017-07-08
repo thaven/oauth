@@ -12,9 +12,14 @@ import oauth.provider : OAuthProvider;
 
 shared static this()
 {
+    import std.typecons : BitFlags;
+    alias OAuthProvider.Option Option;
+
     OAuthProvider.register("trustedkey", new immutable(OAuthProvider)(
         "https://wallet.trustedkey.com/oauth/authorize",
         "https://wallet.trustedkey.com/oauth/token",
-        OAuthProvider.Options.explicitRedirectUri
+        BitFlags!Option(
+            Option.explicitRedirectUri
+        )
     ));
 }

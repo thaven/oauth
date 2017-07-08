@@ -91,10 +91,17 @@ class AzureAuthProvider : OAuthProvider
 {
     private this(string tenantId) immutable
     {
+        import std.typecons : BitFlags;
+
         auto baseUrl = "https://login.microsoftonline.com/" ~ tenantId;
-        super(baseUrl ~ "/oauth2/authorize",
+        super(
+            baseUrl ~ "/oauth2/authorize",
             baseUrl ~ "/oauth2/token",
-            Options.explicitRedirectUri | Options.clientAuthParams);
+            BitFlags!Option(
+                Option.explicitRedirectUri |
+                Option.clientAuthParams
+            )
+        );
     }
 
     override
