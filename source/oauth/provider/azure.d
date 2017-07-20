@@ -98,7 +98,7 @@ class AzureAuthProvider : OAuthProvider
             baseUrl ~ "/oauth2/authorize",
             baseUrl ~ "/oauth2/token",
             BitFlags!Option(
-                Option.explicitRedirectUri |
+                Option.explicitRedirectUri,
                 Option.clientAuthParams
             )
         );

@@ -78,8 +78,8 @@ class FacebookAuthProvider : OAuthProvider
             "https://www.facebook.com/dialog/oauth",
             "https://graph.facebook.com/v2.3/oauth/access_token",
             BitFlags!Option (
-                Option.explicitRedirectUri |
-                Option.tokenRequestHttpGet |
+                Option.explicitRedirectUri,
+                Option.tokenRequestHttpGet,
                 Option.clientAuthParams
             )
         );

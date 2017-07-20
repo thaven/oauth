@@ -24,7 +24,7 @@ shared static this()
         "https://accounts.google.com/o/oauth2/auth",
         "https://accounts.google.com/o/oauth2/token",
         BitFlags!Option(
-            Option.explicitRedirectUri |
+            Option.explicitRedirectUri,
             Option.clientAuthParams
         )
     ));
