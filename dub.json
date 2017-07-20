@@ -1,6 +1,6 @@
 {
   "name" : "oauth",
-  "description" : "OAuth2 implementation compatible with vibe.d",
+  "description" : "OAuth2 client library compatible with vibe.d",
   "copyright" : "Copyright © 2016,2017 Harry T. Vennik",
   "license" : "MIT",
   "authors" : [
