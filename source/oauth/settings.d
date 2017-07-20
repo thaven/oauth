@@ -22,6 +22,19 @@ import std.datetime : Clock, hours, SysTime;
 import std.exception : enforce;
 import std.format : format;
 
+/++
+    Load settings from JSON file
+
+    See OAuthSettings constructor documentation for a description of the JSON
+    schema used. The file may contain an array of such JSON objects.
+
+    Params:
+        path = Path to the JSON file
+
+    Returns:
+        An array of new OAuthSettings objects constructed with the JSON read
+        from the specified file.
+  +/
 immutable(OAuthSettings)[] loadConfig(string path)
 {
     import vibe.core.file : readFileUTF8;

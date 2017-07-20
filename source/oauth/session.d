@@ -41,6 +41,22 @@ class OAuthSession
         string _signature;
     }
 
+    /++
+        Load OAuthSession data from Vibe.d session.
+
+        Params:
+            settings = The OAuth settings to use.
+            httpSession = The Vibe.d session.
+
+        Throws:
+            OAuthException if the session data as found in the Vibe.d session
+            appears corrupt or is not valid for the provider referenced by
+            settings.
+
+        Returns:
+            A new OAuthSession object holding the data obtained from the Vibe.d
+            session or `null` if no saved OAuthSession was found.
+      +/
     static OAuthSession load(
         immutable OAuthSettings settings,
         scope Session httpSession)
