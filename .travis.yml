@@ -1,0 +1,7 @@
+language: d
+script: COVERAGE=1 ./travis.sh
+after_success: bash <(curl -s https://codecov.io/bash)
+env:
+  - COVERAGE=1
+  # set the GH_TOKEN to deploy documentation
+  - secure: REPLACE_ME_REPLACE_ME_REPLACE_ME

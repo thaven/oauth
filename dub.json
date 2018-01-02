@@ -16,5 +16,6 @@
       "version" : "*",
       "optional" : true
     }
-  }
+  },
+  "-ddoxTool": "scod"
 }
