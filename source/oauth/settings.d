@@ -213,7 +213,7 @@ class OAuthSettings
             rng = new SHA1HashMixerRNG;
 
         auto ld = LoginData(Clock.currTime, scopesJoined, !!("redirect_uri" in reqParams));
-        rng.read(ld.key);
+        rng.read(ld.randomSecret);
 
         reqParams["state"] = Base64URLNoPadding.encode(ld.key);
         httpSession.set("oauth.authorization", ld);
@@ -262,8 +262,8 @@ class OAuthSettings
         params2["client_id"].shouldEqual("TEST_CLIENT_ID");
         params1["response_type"].shouldEqual("code");
         params2["response_type"].shouldEqual("code");
-        Base64URLNoPadding.decode(params1["state"]).length.shouldEqual(LoginData.key.length);
-        Base64URLNoPadding.decode(params2["state"]).length.shouldEqual(LoginData.key.length);
+        Base64URLNoPadding.decode(params1["state"]).length.shouldEqual(LoginData.init.key.length);
+        Base64URLNoPadding.decode(params2["state"]).length.shouldEqual(LoginData.init.key.length);
         params1["state"].shouldNotEqual(params2["state"]);
     }
 
@@ -327,7 +327,14 @@ class OAuthSettings
         auto key = Base64URLNoPadding.decode(state);
         auto ld = httpSession.get!LoginData("oauth.authorization");
 
-        enforce!OAuthException(key == ld.key, "Invalid state parameter.");
+        static if (__VERSION__ >= 2075)
+        {
+            import std.digest.digest : secureEqual;
+            immutable matches = secureEqual(key, ld.key[]);
+        }
+        else
+            immutable matches = key == ld.key;
+        enforce!OAuthException(matches, "Invalid state parameter.");
 
         scope(exit) httpSession.remove("oauth.authorization");
 
@@ -434,6 +441,16 @@ class OAuthSettings
         SysTime timestamp;
         string  scopes;
         bool    redirectUriRequired;
-        ubyte[16] key;
+        ubyte[16] randomSecret;
+
+        auto key() @property const nothrow @trusted
+        {
+            import std.digest.hmac : hmac;
+            import std.digest.sha : SHA256;
+            import std.string : representation;
+
+            immutable ts = this.timestamp.toUnixTime;
+            return hmac!SHA256((cast(ubyte*)&ts)[0 .. ts.sizeof], scopes.representation, randomSecret[]);
+        }
     }
 }
