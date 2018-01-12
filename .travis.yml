@@ -1,0 +1,22 @@
+language: d
+
+matrix:
+  include:
+    - d: dmd
+      script:
+        # requires fix for Issue 13742
+        - dub test #-b unittest-cov
+        - dub build -b ddox
+      env:
+        # travis encrypt -r thaven/oauth GH_TOKEN=123456789abcdef
+        secure: M7xqIUH2t2jEInlcsINClholrhjg2oEhAj4e43DxC+cd6w3I1DrTecD9qDbEhoPdMsstSNa1xkeS72GSn6H6vgBJ/TTgLaXIvJYO8vwf4IVPAqDlhY7LgjY1s1P+1dAAsEo/s+mZM0pG50eaITNgclPj0c41JPH7OmdmIeSbJhyXroIgFDAR2aKYr1SXsmSweUp9SlyA+onl8K4sWAgYnwnqof6jpT/I+SVqSZlDT3UqucS2Ntoa1/eVcNIrICA1yIuQL8K/7JbeJ2SR8WzfuFtzwubgjcomcvuWS5X3W/Tzyr/fcg+zLf5xJtTcmTj6mPItQBupgjkn+JH79+NSqo5Xwruq3ksPVJzPPpDkm8QQ5kev8bxQ3Z7FbJjRYIH8QaYFN7LdBX85oCvGUzW46b2JhBYEry6NZ+FBiLTS1vsmNnjUzsCRkgKvWz39dsXrp20ztvPvt1ZDnunxuu45WvZpiJBttXA/xDia1pi28hjjjSWSxXNtbTfnaS76cOO8Me6/SADbXCH0v9IGsO3sFuPG+k1YYqXUNVN9FgIzl7RXU6sJw/fHhEse99u29r3KKVdz+dQkMwXyU+NqlqB+g/wjwyTBdD8EYFZ1+8qkC288VEryg9+tx2WWPB2VYJhmzwvI8gvoPqkfO8F5jHSE5zsVRs1cWDtdIfZoI7p5aHI=
+      addons: { apt: { packages: [libevent-dev] } }
+      after_success: bash <(curl -s https://codecov.io/bash)
+
+      deploy:
+        local_dir: docs
+        provider: pages
+        skip_cleanup: true
+        github_token: $GH_TOKEN
+        on:
+          branch: master
