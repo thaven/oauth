@@ -2,10 +2,10 @@ language: d
 
 matrix:
   include:
-    - d: dmd
+    # 2.078.1-beta.1 needed for coverage fix (Issue 13742)
+    - d: dmd-beta
       script:
-        # requires fix for Issue 13742
-        - dub test #-b unittest-cov
+        - dub test -b unittest-cov
         - dub build -b ddox
       env:
         # travis encrypt -r thaven/oauth GH_TOKEN=123456789abcdef
