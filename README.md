@@ -2,6 +2,8 @@
 The `oauth` package provides an implementation of the [OAuth 2.0 Authorization
 framework][RFC6749].
 
+# [API docs](http://thaven.github.io/oauth)
+
 This package is stabilizing, but not quite 1.0 yet. Subsequent versions may not
 be fully compatible.
 
@@ -14,7 +16,6 @@ a few methods moved to another class (e.g. `OAuthSession.load` instead of
 - oauth 0.2.x: vibe.d ~>0.8.0-beta.6
 
 # API Overview
-Full documentation is in the source, here is just an overview of the 0.1.0+ API.
 
 You'll need at least one `OAuthProvider`. Support for various authorization
 providers is included, and it's easy to add your own. You generally don't
