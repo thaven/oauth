@@ -17,5 +17,21 @@
       "optional" : true
     }
   },
+  "configurations": [
+      {
+          "name": "library",
+          "excludedSourceFiles": ["source/oauth/test.d"]
+      },
+      {
+          "name": "unittest",
+          "targetType": "executable",
+          "preBuildCommands": ["dub run unit-threaded -c gen_ut_main -- -f ut.d"],
+          "postBuildCommands": ["rm ut.d"],
+          "mainSourceFile": "ut.d",
+          "dependencies": {
+              "unit-threaded": "~>0.7.11"
+          }
+      }
+  ],
   "-ddoxTool": "scod"
 }

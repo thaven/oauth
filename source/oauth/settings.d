@@ -185,9 +185,9 @@ class OAuthSettings
         in string[] scopes = null) immutable
     {
         import std.array : Appender;
-        import std.random : uniform;
         import std.digest.digest : toHexString;
         import vibe.inet.webform : formEncode;
+        import vibe.crypto.cryptorand : SHA1HashMixerRNG;
 
         string[string] reqParams;
 
@@ -208,10 +208,12 @@ class OAuthSettings
 
         provider.authUriHandler(this, reqParams);
 
-        auto t = Clock.currTime;
-        auto rnd = uniform!ulong;
-        auto ld = LoginData(t, rnd, scopesJoined,
-            cast(bool) ("redirect_uri" in reqParams));
+        static SHA1HashMixerRNG rng;
+        if (rng is null)
+            rng = new SHA1HashMixerRNG;
+
+        auto ld = LoginData(Clock.currTime, scopesJoined, !!("redirect_uri" in reqParams));
+        rng.read(ld.randomSecret);
 
         reqParams["state"] = Base64URLNoPadding.encode(ld.key);
         httpSession.set("oauth.authorization", ld);
@@ -238,6 +240,49 @@ class OAuthSettings
         string[] scopes = null) immutable
     {
         return this.userAuthUri(httpSession, null, scopes);
+    }
+
+    @("userAuthUri") unittest
+    {
+        import oauth.test, vibe.inet.webform;
+        import std.stdio;
+
+        auto settings = testSettings();
+        auto session = testSession();
+        auto url1 = URL(settings.userAuthUri(session, null, null));
+        auto url2 = URL(settings.userAuthUri(session, null, null));
+        url1.shouldEqual(URL(TestProvider.authUri));
+        url2.shouldEqual(URL(TestProvider.authUri));
+        url1.shouldEqual(url2);
+
+        FormFields params1, params2;
+        parseURLEncodedForm(url1.queryString, params1);
+        parseURLEncodedForm(url2.queryString, params2);
+        params1["client_id"].shouldEqual("TEST_CLIENT_ID");
+        params2["client_id"].shouldEqual("TEST_CLIENT_ID");
+        params1["response_type"].shouldEqual("code");
+        params2["response_type"].shouldEqual("code");
+        Base64URLNoPadding.decode(params1["state"]).length.shouldEqual(LoginData.init.key.length);
+        Base64URLNoPadding.decode(params2["state"]).length.shouldEqual(LoginData.init.key.length);
+        params1["state"].shouldNotEqual(params2["state"]);
+    }
+
+    @("userAuth randomness") unittest
+    {
+        import oauth.test, vibe.inet.webform;
+        import std.algorithm;
+
+        string[] states;
+        auto settings = testSettings();
+        auto session = testSession();
+        foreach (_; 0 .. 128)
+        {
+            FormFields params;
+            auto url = URL(settings.userAuthUri(session, null, null));
+            parseURLEncodedForm(url.queryString, params);
+            states ~= params["state"];
+        }
+        states.sort().shouldEqual(states.uniq);
     }
 
     /++
@@ -282,7 +327,14 @@ class OAuthSettings
         auto key = Base64URLNoPadding.decode(state);
         auto ld = httpSession.get!LoginData("oauth.authorization");
 
-        enforce!OAuthException(key == ld.key, "Invalid state parameter.");
+        static if (__VERSION__ >= 2075)
+        {
+            import std.digest.digest : secureEqual;
+            immutable matches = secureEqual(key, ld.key[]);
+        }
+        else
+            immutable matches = key == ld.key;
+        enforce!OAuthException(matches, "Invalid state parameter.");
 
         scope(exit) httpSession.remove("oauth.authorization");
 
@@ -387,22 +439,18 @@ class OAuthSettings
     struct LoginData
     {
         SysTime timestamp;
-        ulong   randomId;
         string  scopes;
         bool    redirectUriRequired;
+        ubyte[16] randomSecret;
 
-        auto key() @property const nothrow @safe
+        auto key() @property const nothrow @trusted
         {
-            import std.digest.crc : crc32Of;
-            import std.digest.sha : sha256Of;
+            import std.digest.hmac : hmac;
+            import std.digest.sha : SHA256;
+            import std.string : representation;
 
-            ubyte[20] data;
-            ulong[] data64 = cast(ulong[])(data[0 .. 16]);
-            data64[0] = this.timestamp.toUnixTime;
-            data64[1] = this.randomId;
-            data[16 .. 20] = crc32Of(this.scopes);
-            return sha256Of(data[]);
+            immutable ts = this.timestamp.toUnixTime;
+            return hmac!SHA256((cast(ubyte*)&ts)[0 .. ts.sizeof], scopes.representation, randomSecret[]);
         }
     }
 }
-
