@@ -2,8 +2,7 @@ language: d
 
 matrix:
   include:
-    # 2.078.1-beta.1 needed for coverage fix (Issue 13742)
-    - d: dmd-beta
+    - d: dmd
       script:
         - dub test -b unittest-cov
         - dub build -b ddox
