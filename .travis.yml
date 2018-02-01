@@ -4,8 +4,7 @@ matrix:
   include:
     - d: dmd
       script:
-        # requires fix for Issue 13742
-        - dub test #-b unittest-cov
+        - dub test -b unittest-cov
         - dub build -b ddox
       env:
         # travis encrypt -r thaven/oauth GH_TOKEN=123456789abcdef
