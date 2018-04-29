@@ -291,7 +291,9 @@ class OAuthSession
         _tokenData = atr;
         _timestamp = timestamp;
 
-        enforce(this.tokenType == "bearer", new OAuthException(
+        immutable tkType = this.tokenType;
+
+        enforce(tkType == "bearer" || tkType == "", new OAuthException(
             format("Unsupported token type: %s", this.tokenType)));
 
         enforce!OAuthException(this.token, "No token received.");
