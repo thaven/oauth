@@ -2,7 +2,7 @@ language: d
 
 matrix:
   include:
-    - d: dmd
+    - d: dmd-2.078.3
       script:
         - dub test -b unittest-cov
         - dub build -b ddox
