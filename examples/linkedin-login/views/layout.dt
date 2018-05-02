@@ -1,0 +1,7 @@
+doctype html
+html
+	head
+		title LinkedIn authentication example
+	body
+		block body
+

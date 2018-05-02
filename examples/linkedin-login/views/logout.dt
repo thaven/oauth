@@ -1,0 +1,6 @@
+extends layout
+
+block body
+    h1 Logout
+    p You've been logged out successfully!
+

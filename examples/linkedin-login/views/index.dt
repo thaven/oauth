@@ -1,0 +1,9 @@
+extends layout
+
+block body
+    h1 Welcome #{ userInfo["firstName"].get!string }
+    p You've been logged in successfully!
+    p LinkedIn told me your name is #{ userInfo["firstName"].get!string }
+        | #{ userInfo["lastName"].get!string } and your headline is
+        | #{ userInfo["headline"].get!string }.
+
