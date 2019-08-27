@@ -432,8 +432,7 @@ class OAuthSession
                 {
                     import vibe.http.common : HTTPMethod;
                     req.method = HTTPMethod.POST;
-                    req.contentType = "application/x-www-form-urlencoded";
-                    req.bodyWriter.write(params.formEncode());
+                    req.writeFormBody(params);
                 }
             },
             delegate void(scope HTTPClientResponse res) {
