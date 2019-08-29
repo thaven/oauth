@@ -185,7 +185,7 @@ class OAuthSettings
         in string[] scopes = null) immutable
     {
         import std.array : Appender;
-        import std.digest.digest : toHexString;
+        import std.digest : toHexString;
         import vibe.inet.webform : formEncode;
         import vibe.crypto.cryptorand : SHA1HashMixerRNG;
 
@@ -329,7 +329,7 @@ class OAuthSettings
 
         static if (__VERSION__ >= 2075)
         {
-            import std.digest.digest : secureEqual;
+            import std.digest : secureEqual;
             immutable matches = secureEqual(key, ld.key[]);
         }
         else
