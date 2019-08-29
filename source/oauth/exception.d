@@ -49,6 +49,9 @@ class OAuthException : Exception
 
         Params:
             msg = human-readable error message.
+            file = (implicit)
+            line = (implicit)
+            next = (implicit)
       +/
     this(
         string msg,
@@ -67,6 +70,9 @@ class OAuthException : Exception
 
         Params:
             errorResponse = error response from the authentication server.
+            file = (implicit)
+            line = (implicit)
+            next = (implicit)
       +/
     this(
         Json errorResponse,
