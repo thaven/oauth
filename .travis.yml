@@ -8,7 +8,7 @@ matrix:
         - dub build -b ddox
       env:
         # travis encrypt -r thaven/oauth GH_TOKEN=123456789abcdef
-        secure: M7xqIUH2t2jEInlcsINClholrhjg2oEhAj4e43DxC+cd6w3I1DrTecD9qDbEhoPdMsstSNa1xkeS72GSn6H6vgBJ/TTgLaXIvJYO8vwf4IVPAqDlhY7LgjY1s1P+1dAAsEo/s+mZM0pG50eaITNgclPj0c41JPH7OmdmIeSbJhyXroIgFDAR2aKYr1SXsmSweUp9SlyA+onl8K4sWAgYnwnqof6jpT/I+SVqSZlDT3UqucS2Ntoa1/eVcNIrICA1yIuQL8K/7JbeJ2SR8WzfuFtzwubgjcomcvuWS5X3W/Tzyr/fcg+zLf5xJtTcmTj6mPItQBupgjkn+JH79+NSqo5Xwruq3ksPVJzPPpDkm8QQ5kev8bxQ3Z7FbJjRYIH8QaYFN7LdBX85oCvGUzW46b2JhBYEry6NZ+FBiLTS1vsmNnjUzsCRkgKvWz39dsXrp20ztvPvt1ZDnunxuu45WvZpiJBttXA/xDia1pi28hjjjSWSxXNtbTfnaS76cOO8Me6/SADbXCH0v9IGsO3sFuPG+k1YYqXUNVN9FgIzl7RXU6sJw/fHhEse99u29r3KKVdz+dQkMwXyU+NqlqB+g/wjwyTBdD8EYFZ1+8qkC288VEryg9+tx2WWPB2VYJhmzwvI8gvoPqkfO8F5jHSE5zsVRs1cWDtdIfZoI7p5aHI=
+        secure: "gQsokyoWNjc7WBRvNs/fkNoJwJoPid7o2V0pTXZj4NW1kZ0wb7xvjjt41t4dI3UaXD7qMsKp/fVGwN76qFof0H+u0RwLHOjff45srrxNJDRSiWWvdc7qrt4Jc4q/Fli6FqL+FHoYk9ByGQVtseU225EiiYQE9KfYH46aSmeSEUIHNfh/+QS3Dh9Ua3mq7q8o1G06fyWNOt33WwwX/GmmFlqTS7IzKgEej0O+38X5dkUcnRdyRopipT83FsBMLfxL8HxvAz86LPag5bVl9lQBxhY4EKjicv0nosrDT18LXd+z4uQNhEU23OOBtP5H5JI6+WuJXX+ZjiqEqdwiSn5UgyRKw5O/gmAWwZFGmn21thd1j8FMvIwdNqTh9/AeH5CgK1NpB3vN89nKW9enP17kwLo81Ijoad1+0Yh39jAlKMK1UWgQB6tnIoXfnzGDYTbTZ/Z171GJJ+6BCdF6YnbA9YdZw9SzIV8S0e1wkztnzqlfIMkainXXMyzhN6x+Ys9znzjQ1mUwlrjQ+D0mFBtfVjpdELE3sMiHaYIYSMHH0T6EK9dypo0b2IpQPhGQM4tPh4jbV8pY9q07lMRFa7kTIX7JW0VpQ0E219J7gHYChza/ko9dPAImkrZVkS2Vm4vPF1EWKLEC5lpmP7BvDfm8mxP1N73KdxR3uvye4YbrNsM="
       addons: { apt: { packages: [libevent-dev] } }
       after_success: bash <(curl -s https://codecov.io/bash)
 
