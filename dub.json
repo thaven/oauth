@@ -29,7 +29,7 @@
           "postBuildCommands": ["rm ut.d"],
           "mainSourceFile": "ut.d",
           "dependencies": {
-              "unit-threaded": "~>0.7.11"
+              "unit-threaded": ">=0.7.11"
           }
       }
   ],
