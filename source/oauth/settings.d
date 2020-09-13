@@ -406,6 +406,7 @@ class OAuthSettings
         Params:
             scopes = An array of identifiers specifying the scope of
                 access to be requested. (optional)
+            params = Additional parameters of request. (optional)
 
         Returns: The new session.
 
