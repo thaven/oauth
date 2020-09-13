@@ -194,9 +194,9 @@ class OAuthSettings
         foreach (k, v; extraParams)
             reqParams[k] = v;
 
-        // Request an authorization code from the OAuth server. Subsequently,
-        // the authorization code may be exchanged for an access token.
-        reqParams["response_type"] = "code";
+        reqParams["response_type"] =
+            (provider.options & OAuthProvider.Option.tokenResponseType) ? "token" : "code";
+
         reqParams["client_id"] = clientId;
 
         if (provider.options & OAuthProvider.Option.explicitRedirectUri)
@@ -412,14 +412,13 @@ class OAuthSettings
         Throws: OAuthException if authentication fails.
       +/
     final
-    OAuthSession clientSession(string[] scopes = null) immutable
+    OAuthSession clientSession(string[] scopes = null, string[string] params = null) immutable
     out(result)
     {
         assert(result !is null);
     }
     body
     {
-        string[string] params;
         params["grant_type"] = "client_credentials";
 
         if (scopes)
