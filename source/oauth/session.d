@@ -377,7 +377,7 @@ class OAuthSession
         return default_;
     }
 
-    struct SaveData
+    protected struct SaveData
     {
         SysTime timestamp;
         Json tokenData;
