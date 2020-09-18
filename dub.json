@@ -9,7 +9,7 @@
   ],
   "targetType" : "library",
   "dependencies" : {
-    "vibe-d:core" : "~>0.8.0-beta.6",
+    "vibe-d:core" : ">=0.8.0-beta.6 <0.10.0",
     "vibe-d:data" : "*",
     "vibe-d:http" : "*",
     "vibe-d:web" : {
@@ -29,7 +29,7 @@
           "postBuildCommands": ["rm ut.d"],
           "mainSourceFile": "ut.d",
           "dependencies": {
-              "unit-threaded": "~>0.7.11"
+              "unit-threaded": ">=0.7.11"
           }
       }
   ],
