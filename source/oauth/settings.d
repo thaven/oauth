@@ -406,20 +406,20 @@ class OAuthSettings
         Params:
             scopes = An array of identifiers specifying the scope of
                 access to be requested. (optional)
-            params = Additional parameters of request. (optional)
 
         Returns: The new session.
 
         Throws: OAuthException if authentication fails.
       +/
     final
-    OAuthSession clientSession(string[] scopes = null, string[string] params = null) immutable
+    OAuthSession clientSession(string[] scopes = null) immutable
     out(result)
     {
         assert(result !is null);
     }
     body
     {
+        string[string] params;
         params["grant_type"] = "client_credentials";
 
         if (scopes)
