@@ -319,7 +319,7 @@ class OAuthSettings
     {
         assert(result !is null);
     }
-    body
+    do
     {
         enforce(httpSession.isKeySet("oauth.authorization"),
             "No call to userAuthUri was made using this HTTP session.");
@@ -387,7 +387,7 @@ class OAuthSettings
     {
         assert(result !is null);
     }
-    body
+    do
     {
         string[string] params;
         params["grant_type"] = "password";
@@ -417,7 +417,7 @@ class OAuthSettings
     {
         assert(result !is null);
     }
-    body
+    do
     {
         string[string] params;
         params["grant_type"] = "client_credentials";

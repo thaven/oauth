@@ -390,7 +390,7 @@ class OAuthSession
         assert(this.token);
         assert(this.expires > Clock.currTime);
     }
-    body
+    do
     {
         import vibe.http.client : requestHTTP, HTTPClientResponse;
 

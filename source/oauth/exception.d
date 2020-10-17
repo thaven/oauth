@@ -83,7 +83,7 @@ class OAuthException : Exception
     {
         assert("error" in errorResponse);
     }
-    body
+    do
     {
         _err_rfc6749 = errorResponse["error"].get!string;
 
