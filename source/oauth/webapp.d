@@ -150,7 +150,7 @@ class OAuthWebapp
         catch (Exception)
             assert(false);
     }
-    body
+    do
     {
         try
             if (auto pCM = "oauth.session" in req.context)
