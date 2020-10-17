@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
+		<title>OAuthException.this - multiple declarations</title>
+		<link rel="stylesheet" href="../../css/style.min.css"/>
+		<script type="text/javascript" src="../../js/script.min.js"></script>
+	</head>
+	<body onload="setupDdox();">
+		<header></header>
+		<nav id="main-nav">
+			<div>
+				<noscript>
+					<p style="color: red">The search functionality needs JavaScript enabled</p>
+				</noscript>
+				<div id="symbolSearchPane" style="display: none">
+					<form action="#" method="GET">
+						<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(24);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" autofocus/>
+					</form>
+					<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+document.getElementById('symbolSearchPane').style.display = 'block';</script>
+				</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">oauth
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../oauth/provider.html">provider</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../oauth/provider/azure.html">azure</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/provider/facebook.html">facebook</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/provider/github.html">github</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/provider/google.html">google</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/provider/trustedkey.html">trustedkey</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/client.html">client</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/config.html">config</a>
+						</div>
+					</li>
+					<li>
+						<div class="module selected">
+							<a href="../../oauth/exception.html">exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/session.html">session</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/settings.html">settings</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/webapp.html">webapp</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+			</div>
+			<p id="main-nav-footer">
+				Built with
+				<a href="https://github.com/MartinNowak/scod">scod</a>
+			</p>
+		</nav>
+		<div id="main-contents">
+			<div>
+				<h1>OAuthException.this - multiple declarations</h1>
+				<nav class="page-nav">
+					<ul>
+						<li>
+							<a href="#0">
+								Function <code>OAuthException.this</code>
+							</a>
+						</li>
+						<li>
+							<a href="#1">
+								Function <code>OAuthException.this</code>
+							</a>
+						</li>
+					</ul>
+				</nav><h2 id="0">Function OAuthException.this</h2><p>Creates a new instance of OAuthException representing a client
+        side error condition.
+</p>
+				<div class="prototype">
+					<code class="lang-d">
+						<div class="single-prototype">
+				<span class="pln">this</span>
+				<span class="pun">(</span>
+				<br/>
+				&nbsp;&nbsp;<span class="typ">string</span> <span class="pln">msg</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="typ">string</span> <span class="pln">file</span> <span class="pun">=</span> <span class="kwd">__FILE__</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="typ">ulong</span> <span class="pln">line</span> <span class="pun">=</span> <span class="kwd">cast</span><span class="pun">(</span><span class="typ">ulong</span><span class="pun">)</span><span class="kwd">__LINE__</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="pln">object<wbr/></span><span class="pun">.</span><span class="typ">Throwable</span> <span class="pln">next</span> <span class="pun">=</span> <span class="kwd">null</span>
+				<br/>
+				<span class="pun">)</span><span class="pln"> </span><span class="kwd">pure nothrow @nogc @safe</span><span class="pun">;</span>
+						</div>
+					</code>
+				</div>
+				<section></section>
+
+				<section><h3>Parameters</h3>
+<table><col class="caption"><tr><th>Name</th><th>Description</th></tr>
+<tr><td id="msg">msg</td><td> human-readable error message.</td></tr>
+<tr><td id="file">file</td><td> (implicit)</td></tr>
+<tr><td id="line">line</td><td> (implicit)</td></tr>
+<tr><td id="next">next</td><td> (implicit)</td></tr>
+</table>
+</section>
+<h2 id="1">Function OAuthException.this</h2><p>Creates a new instance of <code class="lang-d"><a href="../../oauth/exception/OAuthException.html"><span class="typ">OAuthException</span></a></code> based on an error
+        response from the authentication server.
+</p>
+				<div class="prototype">
+					<code class="lang-d">
+						<div class="single-prototype">
+				<span class="pln">this</span>
+				<span class="pun">(</span>
+				<br/>
+				&nbsp;&nbsp;<span class="pln">vibe<wbr/></span><span class="pun">.</span><span class="pln">data<wbr/></span><span class="pun">.</span><span class="pln">json<wbr/></span><span class="pun">.</span><span class="typ">Json</span> <span class="pln">errorResponse</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="typ">string</span> <span class="pln">file</span> <span class="pun">=</span> <span class="kwd">__FILE__</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="typ">ulong</span> <span class="pln">line</span> <span class="pun">=</span> <span class="kwd">cast</span><span class="pun">(</span><span class="typ">ulong</span><span class="pun">)</span><span class="kwd">__LINE__</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="pln">object<wbr/></span><span class="pun">.</span><span class="typ">Throwable</span> <span class="pln">next</span> <span class="pun">=</span> <span class="kwd">null</span>
+				<br/>
+				<span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe</span><span class="pun">;</span>
+						</div>
+					</code>
+				</div>
+				<section></section>
+
+				<section><h3>Parameters</h3>
+<table><col class="caption"><tr><th>Name</th><th>Description</th></tr>
+<tr><td id="errorResponse">errorResponse</td><td> error response from the authentication server.</td></tr>
+<tr><td id="file">file</td><td> (implicit)</td></tr>
+<tr><td id="line">line</td><td> (implicit)</td></tr>
+<tr><td id="next">next</td><td> (implicit)</td></tr>
+</table>
+</section>
+
+			</div>
+			<footer>
+				<div id="license-info">
+					<p>Harry T. Vennik
+</p>
+
+					<p>© 2016,2017 Harry T. Vennik
+</p>
+
+					<p>Subject to the terms of the MIT license, as written in the included LICENSE file.
+</p>
+
+				</div>
+			</footer>
+		</div>
+	</body>
+</html>

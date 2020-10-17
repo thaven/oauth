@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
+		<title>Function OAuthSettings.userAuthUri</title>
+		<link rel="stylesheet" href="../../css/style.min.css"/>
+		<script type="text/javascript" src="../../js/script.min.js"></script>
+	</head>
+	<body onload="setupDdox();">
+		<header></header>
+		<nav id="main-nav">
+			<div>
+				<noscript>
+					<p style="color: red">The search functionality needs JavaScript enabled</p>
+				</noscript>
+				<div id="symbolSearchPane" style="display: none">
+					<form action="#" method="GET">
+						<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(24);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" autofocus/>
+					</form>
+					<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../";
+document.getElementById('symbolSearchPane').style.display = 'block';</script>
+				</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">oauth
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view collapsed">
+						<div class="package ">
+							<a href="../../oauth/provider.html">provider</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module ">
+							<a href="../../oauth/provider/azure.html">azure</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/provider/facebook.html">facebook</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/provider/github.html">github</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/provider/google.html">google</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/provider/trustedkey.html">trustedkey</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/client.html">client</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/config.html">config</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/exception.html">exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/session.html">session</a>
+						</div>
+					</li>
+					<li>
+						<div class="module selected">
+							<a href="../../oauth/settings.html">settings</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../oauth/webapp.html">webapp</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+			</div>
+			<p id="main-nav-footer">
+				Built with
+				<a href="https://github.com/MartinNowak/scod">scod</a>
+			</p>
+		</nav>
+		<div id="main-contents">
+			<div>
+				<h1>Function OAuthSettings.userAuthUri</h1><p>User login helper method.
+</p>
+				<div class="prototype">
+					<code class="lang-d">
+						<div class="single-prototype">
+				<span class="kwd">final </span><span class="typ">string</span> <span class="pln">userAuthUri</span>
+				<span class="pun">(</span>
+				<br/>
+				&nbsp;&nbsp;<span class="kwd">scope </span><span class="pln">vibe<wbr/></span><span class="pun">.</span><span class="pln">http<wbr/></span><span class="pun">.</span><span class="pln">session<wbr/></span><span class="pun">.</span><span class="typ">Session</span> <span class="pln">httpSession</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="kwd">in </span><span class="kwd">const</span><span class="pun">(</span><span class="typ">string</span><span class="pun">[</span><span class="typ">string</span><span class="pun">]</span><span class="pun">)</span> <span class="pln">extraParams</span> <span class="pun">=</span> <span class="kwd">cast</span><span class="pun">(</span><span class="kwd">const</span><span class="pun">(</span><span class="typ">string</span><span class="pun">[</span><span class="typ">string</span><span class="pun">]))</span><span class="kwd">null</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="kwd">in </span><span class="kwd">const</span><span class="pun">(</span><span class="typ">string</span><span class="pun">[]</span><span class="pun">)</span> <span class="pln">scopes</span> <span class="pun">=</span> <span class="kwd">null</span>
+				<br/>
+				<span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe immutable</span><span class="pun">;</span>
+				<br/>
+				<br/>
+				<span class="kwd">final </span><span class="typ">string</span> <span class="pln">userAuthUri</span>
+				<span class="pun">(</span>
+				<br/>
+				&nbsp;&nbsp;<span class="kwd">scope </span><span class="pln">vibe<wbr/></span><span class="pun">.</span><span class="pln">http<wbr/></span><span class="pun">.</span><span class="pln">session<wbr/></span><span class="pun">.</span><span class="typ">Session</span> <span class="pln">httpSession</span><span class="pun">,</span>
+				<br/>
+				&nbsp;&nbsp;<span class="typ">string</span><span class="pun">[]</span> <span class="pln">scopes</span> <span class="pun">=</span> <span class="kwd">null</span>
+				<br/>
+				<span class="pun">)</span><span class="pln"> </span><span class="kwd">@safe immutable</span><span class="pun">;</span>
+						</div>
+					</code>
+				</div>
+				<section><p>Use this method to obtain a URI which can be used to redirect
+        the user agent to the login page of the service we want to get
+        access to on behalf of a user.
+</p>
+
+<p>        This URI will contain a dynamically generated state parameter,
+        which should be returned by the service as a query string
+        parameter when the user agent is redirected back to this client.
+        The user session can be started by passing this parameter
+        to the <code class="lang-d"><a href="../../oauth/settings/OAuthSettings.userSession.html"><span class="pln">userSession</span></a></code> method, along with the authorization
+        code.
+</p>
+</section>
+
+				<section><h2>Parameters</h2>
+<table><col class="caption"><tr><th>Name</th><th>Description</th></tr>
+<tr><td id="httpSession">httpSession</td><td> The current HTTP session.</td></tr>
+<tr><td id="extraParams">extraParams</td><td> Extra parameters to include in the authentication
+                uri. Use this to pass provider specific parameters that cannot
+                be included in the settings because they won't be the same for
+                every authorization request.</td></tr>
+<tr><td id="scopes">scopes</td><td> An array of identifiers specifying the scope of
+                access to be requested. (optional)</td></tr>
+</table>
+</section>
+<section><h2>Returns</h2>
+<p>The URI the user agent should be redirected to for
+        login and authorization.
+</p>
+</section>
+
+			</div>
+			<footer>
+				<div id="license-info">
+					<p>Harry T. Vennik
+</p>
+
+					<p>© 2016,2017 Harry T. Vennik
+</p>
+
+					<p>Subject to the terms of the MIT license, as written in the included LICENSE file.
+</p>
+
+				</div>
+			</footer>
+		</div>
+	</body>
+</html>

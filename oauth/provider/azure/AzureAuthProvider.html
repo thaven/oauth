@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
+		<title>Class AzureAuthProvider</title>
+		<link rel="stylesheet" href="../../../css/style.min.css"/>
+		<script type="text/javascript" src="../../../js/script.min.js"></script>
+	</head>
+	<body onload="setupDdox();">
+		<header></header>
+		<nav id="main-nav">
+			<div>
+				<noscript>
+					<p style="color: red">The search functionality needs JavaScript enabled</p>
+				</noscript>
+				<div id="symbolSearchPane" style="display: none">
+					<form action="#" method="GET">
+						<input id="symbolSearch" type="text" name="q" placeholder="Search for symbols" autocomplete="off" onchange="performSymbolSearch(24);" onkeypress="this.onchange();" onpaste="this.onchange();" oninput="this.onchange();" autofocus/>
+					</form>
+					<ul id="symbolSearchResults" class="symbolList" style="display: none"></ul><script type="application/javascript" src="../../../symbols.js"></script><script type="application/javascript">var symbolSearchRootDir = "../../../";
+document.getElementById('symbolSearchPane').style.display = 'block';</script>
+				</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">oauth
+						</div>
+				<ul class="tree-view">
+					<li class="tree-view ">
+						<div class="package ">
+							<a href="../../../oauth/provider.html">provider</a>
+						</div>
+				<ul class="tree-view">
+					<li>
+						<div class="module selected">
+							<a href="../../../oauth/provider/azure.html">azure</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../oauth/provider/facebook.html">facebook</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../oauth/provider/github.html">github</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../oauth/provider/google.html">google</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../oauth/provider/trustedkey.html">trustedkey</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../oauth/client.html">client</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../oauth/config.html">config</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../oauth/exception.html">exception</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../oauth/session.html">session</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../oauth/settings.html">settings</a>
+						</div>
+					</li>
+					<li>
+						<div class="module ">
+							<a href="../../../oauth/webapp.html">webapp</a>
+						</div>
+					</li>
+				</ul>
+					</li>
+				</ul>
+			</div>
+			<p id="main-nav-footer">
+				Built with
+				<a href="https://github.com/MartinNowak/scod">scod</a>
+			</p>
+		</nav>
+		<div id="main-contents">
+			<div>
+				<h1>Class AzureAuthProvider</h1><p>Microsoft Azure specialized derivative of OAuthProvider.
+</p>
+				<div class="prototype">
+					<code class="lang-d">
+						<div class="single-prototype">
+				<span class="kwd">class</span> <span class="typ">AzureAuthProvider</span>
+				<br>&nbsp;&nbsp;: <a href="../../../oauth/provider/OAuthProvider.html"><span class="typ">OAuthProvider</span></a>
+				<span class="pun">;</span>
+						</div>
+					</code>
+				</div>
+				<section><p>This class should not be used directly. Please register an OAuthProvider
+    for Azure using registerAzureAuthProvider().
+</p>
+</section>
+
+				<section><h2>Fields</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Type</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<a href="../../../oauth/provider/OAuthProvider.authUri.html" class="public inherited"><code>authUri</code></a>
+							</td>
+							<td class="typecol"><code class="prettyprint lang-d"><span class="typ">string</span></code></td><td></td>
+						</tr>
+						<tr>
+							<td>
+								<a href="../../../oauth/provider/OAuthProvider.tokenUri.html" class="public inherited"><code>tokenUri</code></a>
+							</td>
+							<td class="typecol"><code class="prettyprint lang-d"><span class="typ">string</span></code></td><td></td>
+						</tr>
+					</table>
+				</section>
+				<section><h2>Methods</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<a href="../../../oauth/provider/OAuthProvider.disableAutoRegister.html" class="public inherited">
+									<code>disableAutoRegister</code>
+								</a>
+								<span class="tableEntryAnnotation">()</span>
+							</td>
+							<td>Disables automatic registration of authentication servers from JSON
+        config.
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a href="../../../oauth/provider/OAuthProvider.forName.html" class="public inherited">
+									<code>forName</code>
+								</a>
+								<span class="tableEntryAnnotation">(name)</span>
+							</td>
+							<td>Get provider by name
+</td>
+						</tr>
+						<tr>
+							<td>
+								<a href="../../../oauth/provider/OAuthProvider.register.html" class="public inherited">
+									<code>register</code>
+								</a>
+								<span class="tableEntryAnnotation">(name, srv)</span>
+							</td>
+							<td>Register a provider
+</td>
+						</tr>
+					</table>
+				</section>
+				<section><h2>Enums</h2>
+					<table>
+						<col class="caption"/>
+						<tr>
+							<th>Name</th><th>Description</th>
+						</tr>
+						<tr>
+							<td>
+								<a href="../../../oauth/provider/OAuthProvider.Option.html" class="public inherited">
+									<code>Option</code>
+								</a>
+							</td>
+							<td>Option flags for an OAuth provider.
+</td>
+						</tr>
+					</table>
+				</section>
+				
+			</div>
+			<footer>
+				<div id="license-info">
+					<p>Harry T. Vennik
+</p>
+
+					<p>© 2016,2017 Harry T. Vennik
+</p>
+
+					<p>Subject to the terms of the MIT license, as written in the included LICENSE file.
+</p>
+
+				</div>
+			</footer>
+		</div>
+	</body>
+</html>
