@@ -1,0 +1,13 @@
+- import vibe.data.json : serializeToPrettyJson;
+doctype html
+html
+    head
+        title Google-Github authentication example
+    body
+        - if (user.isNull)
+            a(href="/api/user/login/github") Login with GitHub
+            br
+            a(href="/api/user/login/google") Login with Google
+        - else
+            a(href="/api/user/logout") Logout
+            div #{ user.get.serializeToPrettyJson}
