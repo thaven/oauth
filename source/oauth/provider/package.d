@@ -44,9 +44,10 @@ class OAuthProvider
                                     ///     authorization redirect.
         tokenRequestHttpGet = 0x02, /// use the GET http method when requesting
                                     ///     an access token.
-        clientAuthParams    = 0x04  /// pass client credentials as parameters
+        clientAuthParams    = 0x04, /// pass client credentials as parameters
                                     ///     rather than using http Basic
                                     ///     authentication.
+        tokenResponseType   = 0x08, /// request access_token in authorization redirect.
     }
 
     /++

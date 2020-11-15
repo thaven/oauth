@@ -194,9 +194,9 @@ class OAuthSettings
         foreach (k, v; extraParams)
             reqParams[k] = v;
 
-        // Request an authorization code from the OAuth server. Subsequently,
-        // the authorization code may be exchanged for an access token.
-        reqParams["response_type"] = "code";
+        reqParams["response_type"] =
+            (provider.options & OAuthProvider.Option.tokenResponseType) ? "token" : "code";
+
         reqParams["client_id"] = clientId;
 
         if (provider.options & OAuthProvider.Option.explicitRedirectUri)
