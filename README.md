@@ -1,4 +1,4 @@
-# OAuth [![Build Status](https://travis-ci.org/thaven/oauth.svg?branch=master)](https://travis-ci.org/thaven/oauth) [![Coverage](https://codecov.io/gh/thaven/oauth/branch/master/graph/badge.svg)](https://codecov.io/gh/thaven/oauth) [![Dub](https://img.shields.io/dub/v/oauth.svg)](https://code.dlang.org/packages/oauth)
+# OAuth [![Dub](https://img.shields.io/dub/v/oauth.svg)](https://code.dlang.org/packages/oauth)
 The `oauth` package provides an implementation of the [OAuth 2.0 Authorization
 framework][RFC6749].
 
