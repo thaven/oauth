@@ -11,10 +11,6 @@ In 0.2.0 the `oauth.client` module has been split out into multiple modules and
 a few methods moved to another class (e.g. `OAuthSession.load` instead of
 `OAuthSettings.loadSession`). The old names are deprecated.
 
-# Vibe.d version requirements
-- oauth 0.1.x: vibe.d ~>0.7.29
-- oauth 0.2.x: vibe.d ~>0.8.0-beta.6
-
 # API Overview
 
 You'll need at least one `OAuthProvider`. Support for various authorization
