@@ -9,9 +9,8 @@
   ],
   "targetType" : "library",
   "dependencies" : {
-    "vibe-d:core" : ">=0.8.0-beta.6 <0.10.0",
     "vibe-d:data" : "*",
-    "vibe-d:http" : "*",
+    "vibe-d:http" : "~>0.9.5",
     "vibe-d:web" : {
       "version" : "*",
       "optional" : true
@@ -29,7 +28,10 @@
           "postBuildCommands": ["rm ut.d"],
           "mainSourceFile": "ut.d",
           "dependencies": {
-              "unit-threaded": ">=0.7.11"
+              "unit-threaded": "~>2.0"
+          },
+          "subConfigurations": {
+              "unit-threaded": "nodips"
           }
       }
   ],

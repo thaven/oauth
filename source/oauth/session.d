@@ -141,7 +141,7 @@ class OAuthSession
     void save(scope Session httpSession) const
     {
         httpSession.set("oauth.session",
-            SaveData(_timestamp, _tokenData, this.signature));
+            SaveData(_timestamp, _tokenData.toString(), this.signature));
     }
 
     /++
@@ -355,7 +355,7 @@ class OAuthSession
     this(immutable OAuthSettings settings, SaveData data)
     {
         this.settings = settings;
-        this.handleAccessTokenResponse(data.tokenData, data.timestamp, true);
+        this.handleAccessTokenResponse(Json(data.tokenData), data.timestamp, true);
     }
 
     string refreshToken() @property const
@@ -380,7 +380,7 @@ class OAuthSession
     struct SaveData
     {
         SysTime timestamp;
-        Json tokenData;
+        string tokenData;
         string signature;
     }
 
@@ -469,4 +469,3 @@ class OAuthSession
         );
     }
 }
-
