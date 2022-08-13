@@ -1,0 +1,16 @@
+﻿{
+  "name" : "google-github-login-example",
+  "dependencies" : {
+    "oauth" : {
+      "path" : "..\/..\/"
+    },
+    "vibe-d:http" : "*",
+    "vibe-d:core" : "*",
+    "vibe-d:data" : "*",
+    "vibe-d:web" : "*",
+    "vibe-d:mongodb" : "*"
+  },
+  "versions" : [
+    "VibeDefaultMain"
+  ]
+}
